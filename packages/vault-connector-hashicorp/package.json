@@ -1,6 +1,6 @@
 {
 	"name": "@twin.org/vault-connector-hashicorp",
-	"version": "0.0.1-next.19",
+	"version": "0.0.2-next.0",
 	"description": "Vault connector implementation using Hashicorp storage",
 	"repository": {
 		"type": "git",
@@ -36,7 +36,7 @@
 		"@twin.org/entity-storage-models": "next",
 		"@twin.org/logging-models": "next",
 		"@twin.org/nameof": "next",
-		"@twin.org/vault-models": "0.0.1-next.19",
+		"@twin.org/vault-models": "0.0.2-next.0",
 		"@twin.org/web": "next"
 	},
 	"devDependencies": {
