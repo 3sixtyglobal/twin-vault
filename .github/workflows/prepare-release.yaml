@@ -77,6 +77,10 @@ jobs:
             -f parents[]="$CURRENT_SHA" \
             -f 'author[name]=github-actions[bot]' \
             -f 'author[email]=41898282+github-actions[bot]@users.noreply.github.com' \
+            -f 'committer[name]=github-actions[bot]' \
+            -f 'committer[email]=41898282+github-actions[bot]@users.noreply.github.com' \
+            -f 'committer[name]=github-actions[bot]' \
+            -f 'committer[email]=41898282+github-actions[bot]@users.noreply.github.com' \
             --jq '.sha')
 
           # Update branch reference with force
@@ -85,7 +89,7 @@ jobs:
             -f sha="$NEW_SHA" \
             -F force=true
         env:
-          GH_TOKEN: ${{ secrets.GHA_RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN}}
 
       # Update the release-please configuration files based on the selected semver type
       - name: Update release-please prod config
@@ -98,6 +102,7 @@ jobs:
             config['versioning'] = 'always-bump-${{ github.event.inputs.semverType }}';
             fs.writeFileSync('release/release-please-config.prod.json', JSON.stringify(config, null, 2));
           "
+
       # Run release-please to:
       # 1. Analyze commits since last release
       # 2. Determine appropriate version bumps
