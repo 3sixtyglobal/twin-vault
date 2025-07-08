@@ -39,7 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # Using GITHUB_TOKEN makes actions run as github-actions bot
+          token: ${{ secrets.GHA_RELEASE_TOKEN }} # Use admin PAT instead of GITHUB_TOKEN
 
       # Set up Node.js environment for running npm commands
       - name: Setup Node.js
