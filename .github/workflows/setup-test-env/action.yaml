@@ -1,0 +1,33 @@
+name: 'Setup Testing Environment'
+description: 'Set up the testing environment for running tests from the build workflow.'
+
+inputs:
+  package:
+    description: 'The package to set up the test environment for.'
+    required: true
+    default: 'all'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Start Vault Server
+      if: inputs.package == 'packages/vault-connector-hashicorp'
+      shell: bash
+      run: |
+        docker run -d \
+          --name vault \
+          --cap-add=IPC_LOCK \
+          -p 8200:8200 \
+          -e VAULT_DEV_ROOT_TOKEN_ID=root \
+          hashicorp/vault:1.18.0
+
+        # Wait for Vault to become available
+        echo "Waiting for Vault to start..."
+        sleep 5
+
+        # Enable Transit Secrets Engine via API
+        curl \
+          --header "X-Vault-Token: root" \
+          --request POST \
+          --data '{"type":"transit"}' \
+          http://localhost:8200/v1/sys/mounts/transit
