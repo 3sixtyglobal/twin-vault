@@ -11,7 +11,7 @@ runs:
   using: 'composite'
   steps:
     - name: Start Vault Server
-      if: inputs.package == 'packages/vault-connector-hashicorp'
+      if: inputs.package == 'packages/vault-connector-hashicorp' || inputs.package == 'all'
       shell: bash
       run: |
         docker run -d \
