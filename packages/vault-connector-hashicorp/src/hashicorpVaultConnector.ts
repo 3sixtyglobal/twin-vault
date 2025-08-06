@@ -8,11 +8,10 @@ import {
 	Guards,
 	Is,
 	NotFoundError,
-	ObjectHelper,
 	RandomHelper,
 	StringHelper
 } from "@twin.org/core";
-import { Ed25519 } from "@twin.org/crypto";
+import { Ed25519, PemHelper, RSA } from "@twin.org/crypto";
 import { LoggingConnectorFactory } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
@@ -28,6 +27,7 @@ import type { IHashicorpVaultConnectorConfig } from "./models/IHashicorpVaultCon
 import type { IHashicorpVaultConnectorConstructorOptions } from "./models/IHashicorpVaultConnectorConstructorOptions";
 import type { IHashicorpVaultRequest } from "./models/IHashicorpVaultRequest";
 import type { IHashicorpVaultResponse } from "./models/IHashicorpVaultResponse";
+import type { IImportKeyRequest } from "./models/IImportKeyRequest";
 import type { IKeyDeleteConfigResponse } from "./models/IKeyDeleteConfigResponse";
 import type { IReadKeyResponse } from "./models/IReadKeyResponse";
 import type { IRestoreKeyRequest } from "./models/IRestoreKeyRequest";
@@ -292,7 +292,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			const vaultKeyType = this.mapVaultKeyType(type);
 
-			const payload = {
+			const payload: ICreateKeyRequest = {
 				type: vaultKeyType,
 				exportable: true,
 				allow_plaintext_backup: true // eslint-disable-line camelcase
@@ -319,7 +319,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			if (err instanceof AlreadyExistsError) {
 				throw err;
 			}
-			throw new GeneralError(this.CLASS_NAME, "createdKeyFailed", { name, type }, err);
+			throw new GeneralError(this.CLASS_NAME, "createKeyFailed", { name, type }, err);
 		}
 	}
 
@@ -359,22 +359,66 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		}
 
 		try {
-			const combinedKey = new Uint8Array(privateKey.length + (publicKey?.length ?? 0));
-			combinedKey.set(privateKey);
-			if (publicKey) {
-				combinedKey.set(publicKey, privateKey.length);
-			}
-
 			const internalType = this.mapVaultKeyTypeToIndex(type);
+
+			let publicKeyForPayload: string | null = null;
+			let privateKeyForPayload: string | null = null;
+			let rsaPrivateKeyForPayload: unknown;
+			let rsaPublicKeyForPayload: unknown;
+
+			if (
+				type === VaultKeyType.Ed25519 ||
+				type === VaultKeyType.Secp256k1 ||
+				type === VaultKeyType.ChaCha20Poly1305
+			) {
+				const combinedKey = new Uint8Array(privateKey.length + (publicKey?.length ?? 0));
+				combinedKey.set(privateKey);
+				if (publicKey) {
+					combinedKey.set(publicKey, privateKey.length);
+				}
+				privateKeyForPayload = Converter.bytesToBase64(combinedKey);
+				if (!Is.undefined(publicKey)) {
+					publicKeyForPayload = Converter.bytesToBase64(publicKey);
+				}
+			} else {
+				if (Is.uint8Array(privateKey) && privateKey.length > 0) {
+					const privateKeyPkcs8 = RSA.convertPkcs1ToPkcs8(privateKey);
+					const rsaPrivateComponents = RSA.getPrivateKeyComponents(privateKeyPkcs8);
+
+					rsaPrivateKeyForPayload = {
+						N: rsaPrivateComponents.n.toString(),
+						E: rsaPrivateComponents.e.toString(),
+						D: rsaPrivateComponents.d.toString(),
+						Primes: [rsaPrivateComponents.p.toString(), rsaPrivateComponents.q.toString()],
+						Precomputed: {
+							Dp: rsaPrivateComponents.dp.toString(),
+							Dq: rsaPrivateComponents.dq.toString(),
+							Qinv: rsaPrivateComponents.qi.toString(),
+							CRTValues: []
+						}
+					};
+				}
+
+				if (Is.uint8Array(publicKey) && publicKey.length > 0) {
+					const publicKeySpki = publicKey;
+					const rsaPublicComponents = RSA.getPublicKeyComponents(publicKeySpki);
+					rsaPublicKeyForPayload = {
+						N: rsaPublicComponents.n.toString(),
+						E: rsaPublicComponents.e.toString()
+					};
+				}
+			}
 
 			const payload = {
 				policy: {
 					name,
 					keys: {
 						"1": {
-							key: Converter.bytesToBase64(combinedKey),
+							key: privateKeyForPayload,
 							hmac_key: Converter.bytesToBase64(RandomHelper.generate(32)), // eslint-disable-line camelcase
-							public_key: Is.undefined(publicKey) ? null : Converter.bytesToBase64(publicKey) // eslint-disable-line camelcase
+							public_key: publicKeyForPayload, // eslint-disable-line camelcase
+							rsa_key: rsaPrivateKeyForPayload, // eslint-disable-line camelcase
+							rsa_public_key: rsaPublicKeyForPayload // eslint-disable-line camelcase
 						}
 					},
 					exportable: true,
@@ -386,7 +430,20 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				}
 			};
 
-			const backup = Converter.bytesToBase64(ObjectHelper.toBytes(payload));
+			let json = JSON.stringify(payload);
+
+			if (type === VaultKeyType.Rsa2048) {
+				// If this is RSA data the hashicorp vault expects the bigints to be numeric, not strings
+				// we can only get string outputs from the JSON.stringify so we need to strip the quotes
+				// after the conversion (bigints are not supported in JSON so this is an oddity of the hashicorp vault)
+				const keys = ["N", "E", "D", "Dp", "Dq", "Qinv"];
+				for (const key of keys) {
+					json = json.replace(new RegExp(`"${key}":"(.*?)"`, "g"), `"${key}":$1`);
+				}
+				json = json.replace(/"Primes":\["(.*?)","(.*?)"]/g, '"Primes":[$1,$2]');
+			}
+
+			const backup = Converter.bytesToBase64(Converter.utf8ToBytes(json));
 
 			await this.restoreKey(name, backup);
 		} catch (err) {
@@ -723,7 +780,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				return Converter.base64ToBytes(plaintext);
 			}
 
-			throw new GeneralError(this.CLASS_NAME, "decryptDataFailed", { name, encryptionType });
+			throw new GeneralError(this.CLASS_NAME, "invalidDecryptResponse", { name, encryptionType });
 		} catch (err) {
 			throw new GeneralError(this.CLASS_NAME, "decryptDataFailed", { name, encryptionType }, err);
 		}
@@ -843,6 +900,42 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	}
 
 	/**
+	 * Import a key to the vault.
+	 * @param name The name of the key to import.
+	 * @param type The type of key to import, e.g. "rsa", "ed25519", etc.
+	 * @param privateKeyPem The PEM bundle of the key to import.
+	 * @returns Nothing.
+	 * @throws Error if the key cannot be imported.
+	 */
+	public async importKey(name: string, type: string, privateKeyPem: string): Promise<void> {
+		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(this.CLASS_NAME, nameof(privateKeyPem), privateKeyPem);
+
+		const path = this.getTransitImportKeyPath(name);
+		const url = `${this._baseUrl}/${path}`;
+
+		try {
+			const payload = {
+				type,
+				key: Converter.bytesToBase58(Converter.utf8ToBytes(privateKeyPem)),
+				exportable: true,
+				// eslint-disable-next-line camelcase
+				allow_plaintext_backup: true
+			};
+
+			await FetchHelper.fetchJson<IImportKeyRequest, IHashicorpVaultResponse<unknown>>(
+				this.CLASS_NAME,
+				url,
+				HttpMethod.POST,
+				payload,
+				{ headers: this._headers }
+			);
+		} catch (err) {
+			throw new GeneralError(this.CLASS_NAME, "importKeyFailed", { name }, err);
+		}
+	}
+
+	/**
 	 * Export the key from the vault.
 	 * @param name The name of the key.
 	 * @param keyPath The path of the key. Defaults to "signing-key".
@@ -893,6 +986,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 						0,
 						keyPath === "public-key" ? Ed25519.PUBLIC_KEY_SIZE : Ed25519.PRIVATE_KEY_SIZE
 					);
+				} else if (keyType === VaultKeyType.Rsa2048) {
+					key = Converter.base64ToBytes(PemHelper.stripPemMarkers(keys[keyVersion]));
 				} else {
 					// VaultKeyType.ChaCha20Poly1305
 					key = Converter.base64ToBytes(keys[keyVersion]);
@@ -983,6 +1078,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				return "ed25519";
 			case VaultKeyType.ChaCha20Poly1305:
 				return "chacha20-poly1305";
+			case VaultKeyType.Rsa2048:
+				return "rsa-2048";
 			default:
 				throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { type });
 		}
@@ -1002,6 +1099,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				return 2;
 			case VaultKeyType.ChaCha20Poly1305:
 				return 5;
+			case VaultKeyType.Rsa2048:
+				return 3;
 			default:
 				throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { type });
 		}
@@ -1020,6 +1119,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				return VaultKeyType.Ed25519;
 			case "chacha20-poly1305":
 				return VaultKeyType.ChaCha20Poly1305;
+			case "rsa-2048":
+				return VaultKeyType.Rsa2048;
 			default:
 				throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { type });
 		}
@@ -1034,6 +1135,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		switch (type) {
 			case VaultKeyType.Ed25519:
 			case VaultKeyType.Secp256k1:
+			case VaultKeyType.Rsa2048:
 				return true;
 			default:
 				return false;
@@ -1148,6 +1250,16 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 */
 	private getTransitRestoreKeyPath(name: string): string {
 		return `${this._transitMountPath}/restore/${this.getEncodedName(name)}`;
+	}
+
+	/**
+	 * Get the path for importing a Transit key.
+	 * @param name The name of the key.
+	 * @returns The path for the import key.
+	 * @internal
+	 */
+	private getTransitImportKeyPath(name: string): string {
+		return `${this._transitMountPath}/keys/${this.getEncodedName(name)}/import`;
 	}
 
 	/**

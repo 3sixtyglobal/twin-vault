@@ -9,7 +9,7 @@ import {
 	NotFoundError,
 	RandomHelper
 } from "@twin.org/core";
-import { Bip39, ChaCha20Poly1305, Ed25519, Secp256k1 } from "@twin.org/crypto";
+import { Bip39, ChaCha20Poly1305, Ed25519, RSA, Secp256k1 } from "@twin.org/crypto";
 import {
 	EntityStorageConnectorFactory,
 	type IEntityStorageConnector
@@ -91,6 +91,10 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		} else if (type === VaultKeyType.Secp256k1) {
 			privateKey = seed.slice(0, Secp256k1.PRIVATE_KEY_SIZE);
 			publicKey = Secp256k1.publicKeyFromPrivateKey(privateKey);
+		} else if (type === VaultKeyType.Rsa2048) {
+			const keyPair = RSA.generateKeyPair(2048);
+			privateKey = keyPair.privateKey;
+			publicKey = keyPair.publicKey;
 		} else {
 			// ChaCha20Poly1305 is symmetric, so the private key is the same as the public key.
 			privateKey = seed.slice(0, 32);
@@ -307,8 +311,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		}
 
 		if (
-			encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
-			vaultKey.type !== VaultKeyType.ChaCha20Poly1305
+			(encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
+				vaultKey.type !== VaultKeyType.ChaCha20Poly1305) ||
+			(encryptionType === VaultEncryptionType.Rsa2048 && vaultKey.type !== VaultKeyType.Rsa2048)
 		) {
 			throw new GeneralError(this.CLASS_NAME, "keyTypeMismatch", {
 				encryptionType,
@@ -317,6 +322,12 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		}
 
 		const privateKey = Converter.base64ToBytes(vaultKey.privateKey);
+		const publicKey = Converter.base64ToBytes(vaultKey.publicKey ?? "");
+
+		if (encryptionType === VaultEncryptionType.Rsa2048) {
+			const rsa = new RSA(publicKey, privateKey);
+			return rsa.encrypt(data);
+		}
 
 		const nonce = RandomHelper.generate(12);
 
@@ -357,8 +368,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		}
 
 		if (
-			encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
-			vaultKey.type !== VaultKeyType.ChaCha20Poly1305
+			(encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
+				vaultKey.type !== VaultKeyType.ChaCha20Poly1305) ||
+			(encryptionType === VaultEncryptionType.Rsa2048 && vaultKey.type !== VaultKeyType.Rsa2048)
 		) {
 			throw new GeneralError(this.CLASS_NAME, "keyTypeMismatch", {
 				encryptionType,
@@ -367,6 +379,12 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		}
 
 		const privateKey = Converter.base64ToBytes(vaultKey.privateKey);
+		const publicKey = Converter.base64ToBytes(vaultKey.publicKey ?? "");
+
+		if (encryptionType === VaultEncryptionType.Rsa2048) {
+			const rsa = new RSA(publicKey, privateKey);
+			return rsa.decrypt(encryptedData);
+		}
 
 		const nonce = encryptedData.slice(0, 12);
 
