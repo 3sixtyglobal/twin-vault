@@ -92,7 +92,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 			privateKey = seed.slice(0, Secp256k1.PRIVATE_KEY_SIZE);
 			publicKey = Secp256k1.publicKeyFromPrivateKey(privateKey);
 		} else if (type === VaultKeyType.Rsa2048) {
-			const keyPair = RSA.generateKeyPair(2048);
+			const keyPair = await RSA.generateKeyPair(2048);
 			privateKey = keyPair.privateKey;
 			publicKey = keyPair.publicKey;
 		} else {
@@ -326,7 +326,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 
 		if (encryptionType === VaultEncryptionType.Rsa2048) {
 			const rsa = new RSA(publicKey, privateKey);
-			return rsa.encrypt(data);
+			return rsa.publicEncrypt(data);
 		}
 
 		const nonce = RandomHelper.generate(12);
@@ -383,7 +383,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 
 		if (encryptionType === VaultEncryptionType.Rsa2048) {
 			const rsa = new RSA(publicKey, privateKey);
-			return rsa.decrypt(encryptedData);
+			return rsa.privateDecrypt(encryptedData);
 		}
 
 		const nonce = encryptedData.slice(0, 12);

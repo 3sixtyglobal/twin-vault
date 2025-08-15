@@ -382,8 +382,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				}
 			} else {
 				if (Is.uint8Array(privateKey) && privateKey.length > 0) {
-					const privateKeyPkcs8 = RSA.convertPkcs1ToPkcs8(privateKey);
-					const rsaPrivateComponents = RSA.getPrivateKeyComponents(privateKeyPkcs8);
+					const privateKeyPkcs8 = await RSA.convertPkcs1ToPkcs8(privateKey);
+					const rsaPrivateComponents = await RSA.getPrivateKeyComponents(privateKeyPkcs8);
 
 					rsaPrivateKeyForPayload = {
 						N: rsaPrivateComponents.n.toString(),
@@ -401,7 +401,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 
 				if (Is.uint8Array(publicKey) && publicKey.length > 0) {
 					const publicKeySpki = publicKey;
-					const rsaPublicComponents = RSA.getPublicKeyComponents(publicKeySpki);
+					const rsaPublicComponents = await RSA.getPublicKeyComponents(publicKeySpki);
 					rsaPublicKeyForPayload = {
 						N: rsaPublicComponents.n.toString(),
 						E: rsaPublicComponents.e.toString()
