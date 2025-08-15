@@ -304,7 +304,13 @@ describe("HashicorpVaultConnector", () => {
 			encrypted
 		);
 
+		// Make sure we can decrypt with the standard chacha20poly1305 implementation as well
+		// The first 12 bytes are the nonce
+		const chacha20poly1305 = new ChaCha20Poly1305(key2.privateKey, encrypted.slice(0, 12));
+		const decrypted2 = await chacha20poly1305.decrypt(encrypted.slice(12));
+
 		expect(decrypted).toEqual(Converter.utf8ToBytes("test-data"));
+		expect(decrypted2).toEqual(Converter.utf8ToBytes("test-data"));
 
 		await cleanupKeys([TEST_KEY_NAME, TEST_KEY_NAME_2]);
 	});
