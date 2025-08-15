@@ -1,5 +1,19 @@
 # @twin.org/vault-connector-entity-storage - Changelog
 
+## [0.0.2-next.2](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.2-next.1...vault-connector-entity-storage-v0.0.2-next.2) (2025-08-15)
+
+
+### Features
+
+* update RSA usage ([e1208a8](https://github.com/twinfoundation/vault/commit/e1208a84e033d8c07685f33c2f5b61caff11f6be))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.2-next.1 to 0.0.2-next.2
+
 ## [0.0.2-next.1](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.2-next.0...vault-connector-entity-storage-v0.0.2-next.1) (2025-08-06)
 
 
