@@ -6,7 +6,10 @@ import * as dotenv from "dotenv";
 import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector";
 import type { IHashicorpVaultConnectorConfig } from "../src/models/IHashicorpVaultConnectorConfig";
 
-dotenv.config({ path: [path.join(__dirname, ".env"), path.join(__dirname, ".env.dev")] });
+dotenv.config({
+	path: [path.join(__dirname, ".env"), path.join(__dirname, ".env.dev")],
+	quiet: true
+});
 
 console.debug("Setting up test environment from .env and .env.dev files");
 

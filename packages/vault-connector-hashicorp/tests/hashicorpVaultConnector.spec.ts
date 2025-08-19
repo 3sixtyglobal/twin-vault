@@ -8,8 +8,6 @@ import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector";
 
 const TEST_KEY_NAME = `test-key=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
 const TEST_KEY_NAME_2 = `test-key-2=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
-const TEST_KEY_NAME_RSA = `test-rsa=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
-const TEST_KEY_NAME_RSA_2 = `test-rsa-2=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
 const TEST_SECRET_NAME =
 	"bootstrap-4d8819601e1955d4d2a1c98608629c58eb579692fb8c1b49b258726e31e8a8d4_mnemonic'";
 const TEST_RESTORE_KEY_NAME =
@@ -33,8 +31,6 @@ describe("HashicorpVaultConnector", () => {
 			TEST_KEY_NAME,
 			TEST_RESTORE_KEY_NAME,
 			TEST_RESTORE_NEW_KEY_NAME,
-			TEST_KEY_NAME_RSA,
-			TEST_KEY_NAME_RSA_2,
 			TEST_KEY_NAME_2
 		]);
 		await cleanupSecrets([TEST_SECRET_NAME]);
@@ -313,43 +309,6 @@ describe("HashicorpVaultConnector", () => {
 		expect(decrypted2).toEqual(Converter.utf8ToBytes("test-data"));
 
 		await cleanupKeys([TEST_KEY_NAME, TEST_KEY_NAME_2]);
-	});
-
-	test("can add and get symmetric key rsa-2048", async () => {
-		const keyName = TEST_KEY_NAME_RSA;
-		const keyType = VaultKeyType.Rsa2048;
-
-		// Create a key
-		const publicKey = await vaultConnector.createKey(keyName, keyType);
-
-		// Get the key details
-		const key = await vaultConnector.getKey(keyName);
-		expect(key).toBeDefined();
-		expect(key.publicKey).toEqual(publicKey);
-
-		// Add a secondary key with the same key data
-		const keyName2 = TEST_KEY_NAME_RSA_2;
-		await vaultConnector.addKey(keyName2, key.type, key.privateKey, key.publicKey);
-		const key2 = await vaultConnector.getKey(keyName2);
-		expect(key2).toBeDefined();
-
-		// Encrypt with original key
-		const encrypted = await vaultConnector.encrypt(
-			keyName,
-			VaultEncryptionType.Rsa2048,
-			Converter.utf8ToBytes("test-data")
-		);
-
-		// And decrypt with the new key to demonstrate that the keys are interchangeable
-		const decrypted = await vaultConnector.decrypt(
-			keyName2,
-			VaultEncryptionType.Rsa2048,
-			encrypted
-		);
-
-		expect(decrypted).toEqual(Converter.utf8ToBytes("test-data"));
-
-		await cleanupKeys([TEST_KEY_NAME_RSA, TEST_KEY_NAME_RSA_2]);
 	});
 
 	test("can fail to get a key with no key name", async () => {

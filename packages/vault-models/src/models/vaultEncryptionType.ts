@@ -9,12 +9,7 @@ export const VaultEncryptionType = {
 	/**
 	 * The ChaCha20Poly1305. (symmetric)
 	 */
-	ChaCha20Poly1305: 0,
-
-	/**
-	 * The RSA 2048. (asymmetric)
-	 */
-	Rsa2048: 1
+	ChaCha20Poly1305: 0
 } as const;
 
 /**

@@ -11,8 +11,6 @@ import { EntityStorageVaultConnector } from "../src/entityStorageVaultConnector"
 import { initSchema } from "../src/schema";
 
 const TEST_KEY_NAME = `test-key=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
-const TEST_KEY_NAME_RSA = `test-rsa=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
-const TEST_KEY_NAME_RSA_2 = `test-rsa-2=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
 const TEST_SECRET_NAME = `test-secret=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
 
 let vaultKeyEntityStorageConnector: MemoryEntityStorageConnector<VaultKey>;
@@ -607,43 +605,6 @@ describe("EntityStorageVaultConnector", () => {
 		);
 
 		expect(encrypted.length).toEqual(33);
-	});
-
-	test("can add and get symmetric key rsa-2048", async () => {
-		const vaultConnector = new EntityStorageVaultConnector();
-
-		const keyName = TEST_KEY_NAME_RSA;
-		const keyType = VaultKeyType.Rsa2048;
-
-		// Create a key
-		const publicKey = await vaultConnector.createKey(keyName, keyType);
-
-		// Get the key details
-		const key = await vaultConnector.getKey(keyName);
-		expect(key).toBeDefined();
-		expect(key.publicKey).toEqual(publicKey);
-
-		// Add a secondary key with the same key data
-		const keyName2 = TEST_KEY_NAME_RSA_2;
-		await vaultConnector.addKey(keyName2, key.type, key.privateKey, key.publicKey);
-		const key2 = await vaultConnector.getKey(keyName2);
-		expect(key2).toBeDefined();
-
-		// Encrypt with original key
-		const encrypted = await vaultConnector.encrypt(
-			keyName,
-			VaultEncryptionType.Rsa2048,
-			Converter.utf8ToBytes("test-data")
-		);
-
-		// And decrypt with the new key to demonstrate that the keys are interchangeable
-		const decrypted = await vaultConnector.decrypt(
-			keyName2,
-			VaultEncryptionType.Rsa2048,
-			encrypted
-		);
-
-		expect(decrypted).toEqual(Converter.utf8ToBytes("test-data"));
 	});
 
 	test("can fail to decrypt with a key with no key name", async () => {
