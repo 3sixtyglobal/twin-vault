@@ -4,7 +4,7 @@
 
 The names of the vault encryption types.
 
-## Type declaration
+## Type Declaration
 
 ### ChaCha20Poly1305
 
