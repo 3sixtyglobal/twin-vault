@@ -1,5 +1,12 @@
 # @twin.org/vault-models - Changelog
 
+## [0.0.2-next.4](https://github.com/twinfoundation/vault/compare/vault-models-v0.0.2-next.3...vault-models-v0.0.2-next.4) (2025-08-29)
+
+
+### Features
+
+* eslint migration to flat config ([66415a8](https://github.com/twinfoundation/vault/commit/66415a87caded04bcaefa853fe134cb54b3d0d99))
+
 ## [0.0.2-next.3](https://github.com/twinfoundation/vault/compare/vault-models-v0.0.2-next.2...vault-models-v0.0.2-next.3) (2025-08-19)
 
 
