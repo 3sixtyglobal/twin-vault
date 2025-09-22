@@ -203,7 +203,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			await this.getSecretVersions(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, undefined, err);
 		}
 
 		try {
@@ -221,7 +221,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			return response.data.data.secret as T;
 		} catch (err) {
 			if (err instanceof FetchError && err.properties?.httpStatus === 404) {
-				throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, err);
+				throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, undefined, err);
 			}
 			throw new GeneralError(this.CLASS_NAME, "setSecretFailed", { name }, err);
 		}
@@ -239,7 +239,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			await this.getSecretVersions(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, undefined, err);
 		}
 
 		try {
@@ -394,7 +394,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 					min_decryption_version: 1, // eslint-disable-line camelcase
 					min_encryption_version: 0, // eslint-disable-line camelcase
 					latest_version: 1, // eslint-disable-line camelcase
-					type: internalType // eslint-disable-line camelcase
+					type: internalType
 				}
 			};
 
@@ -438,7 +438,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			keyDetails = await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, undefined, err);
 		}
 
 		try {
@@ -509,7 +509,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, undefined, err);
 		}
 
 		try {
@@ -539,7 +539,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, undefined, err);
 		}
 
 		try {
@@ -588,7 +588,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, undefined, err);
 		}
 
 		try {
@@ -645,7 +645,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			keyDetails = await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, undefined, err);
 		}
 
 		try {
@@ -659,7 +659,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				});
 			}
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, undefined, err);
 		}
 
 		try {
@@ -714,7 +714,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, undefined, err);
 		}
 
 		try {
