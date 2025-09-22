@@ -1,5 +1,19 @@
 # @twin.org/vault-connector-hashicorp - Changelog
 
+## [0.0.2-next.5](https://github.com/twinfoundation/vault/compare/vault-connector-hashicorp-v0.0.2-next.4...vault-connector-hashicorp-v0.0.2-next.5) (2025-09-22)
+
+
+### Features
+
+* update error handling to support latest error formats ([a03636e](https://github.com/twinfoundation/vault/commit/a03636e4485552a45dcee0d99ed1c8ff984de422))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.2-next.4 to 0.0.2-next.5
+
 ## [0.0.2-next.4](https://github.com/twinfoundation/vault/compare/vault-connector-hashicorp-v0.0.2-next.3...vault-connector-hashicorp-v0.0.2-next.4) (2025-08-29)
 
 

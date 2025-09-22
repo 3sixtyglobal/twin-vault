@@ -1,5 +1,19 @@
 # @twin.org/vault-connector-entity-storage - Changelog
 
+## [0.0.2-next.5](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.2-next.4...vault-connector-entity-storage-v0.0.2-next.5) (2025-09-22)
+
+
+### Miscellaneous Chores
+
+* **vault-connector-entity-storage:** Synchronize repo versions
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.2-next.4 to 0.0.2-next.5
+
 ## [0.0.2-next.4](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.2-next.3...vault-connector-entity-storage-v0.0.2-next.4) (2025-08-29)
 
 
