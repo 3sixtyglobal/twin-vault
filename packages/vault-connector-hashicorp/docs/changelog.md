@@ -1,5 +1,19 @@
 # @twin.org/vault-connector-hashicorp - Changelog
 
+## [0.0.2-next.6](https://github.com/twinfoundation/vault/compare/vault-connector-hashicorp-v0.0.2-next.5...vault-connector-hashicorp-v0.0.2-next.6) (2025-10-09)
+
+
+### Features
+
+* add validate-locales ([a3485e8](https://github.com/twinfoundation/vault/commit/a3485e85e6f9021e59fca697d73e966add283dbd))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.2-next.5 to 0.0.2-next.6
+
 ## [0.0.2-next.5](https://github.com/twinfoundation/vault/compare/vault-connector-hashicorp-v0.0.2-next.4...vault-connector-hashicorp-v0.0.2-next.5) (2025-09-22)
 
 
