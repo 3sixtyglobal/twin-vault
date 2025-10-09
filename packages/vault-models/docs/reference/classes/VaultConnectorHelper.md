@@ -12,6 +12,14 @@ Helpers for vault connectors.
 
 `VaultConnectorHelper`
 
+## Properties
+
+### CLASS\_NAME
+
+> `readonly` `static` **CLASS\_NAME**: `string`
+
+Runtime name for the class.
+
 ## Methods
 
 ### jwtSigner()

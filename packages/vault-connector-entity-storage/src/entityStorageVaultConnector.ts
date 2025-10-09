@@ -32,7 +32,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	/**
 	 * Runtime name for the class.
 	 */
-	public readonly CLASS_NAME: string = nameof<EntityStorageVaultConnector>();
+	public static readonly CLASS_NAME: string = nameof<EntityStorageVaultConnector>();
 
 	/**
 	 * The entity storage for the vault keys.
@@ -66,9 +66,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @returns The public key for the key pair.
 	 */
 	public async createKey(name: string, type: VaultKeyType): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultKeyType>(
-			this.CLASS_NAME,
+			EntityStorageVaultConnector.CLASS_NAME,
 			nameof(type),
 			type,
 			Object.values(VaultKeyType)
@@ -76,7 +76,11 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 
 		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (!Is.empty(existingVaultKey)) {
-			throw new AlreadyExistsError(this.CLASS_NAME, "keyAlreadyExists", name);
+			throw new AlreadyExistsError(
+				EntityStorageVaultConnector.CLASS_NAME,
+				"keyAlreadyExists",
+				name
+			);
 		}
 
 		const mnemonic = Bip39.randomMnemonic();
@@ -122,21 +126,25 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		privateKey: Uint8Array,
 		publicKey?: Uint8Array
 	): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultKeyType>(
-			this.CLASS_NAME,
+			EntityStorageVaultConnector.CLASS_NAME,
 			nameof(type),
 			type,
 			Object.values(VaultKeyType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(privateKey), privateKey);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(privateKey), privateKey);
 		if (type !== VaultKeyType.ChaCha20Poly1305) {
-			Guards.uint8Array(this.CLASS_NAME, nameof(publicKey), publicKey);
+			Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(publicKey), publicKey);
 		}
 
 		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (!Is.empty(existingVaultKey)) {
-			throw new AlreadyExistsError(this.CLASS_NAME, "keyAlreadyExists", name);
+			throw new AlreadyExistsError(
+				EntityStorageVaultConnector.CLASS_NAME,
+				"keyAlreadyExists",
+				name
+			);
 		}
 
 		const vaultKey: VaultKey = {
@@ -170,11 +178,11 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		 */
 		publicKey?: Uint8Array;
 	}> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
 		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		return {
@@ -193,12 +201,12 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @returns Nothing.
 	 */
 	public async renameKey(name: string, newName: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.stringValue(this.CLASS_NAME, nameof(newName), newName);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(newName), newName);
 
 		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		await this._vaultKeyEntityStorageConnector.remove(name);
@@ -214,11 +222,11 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @returns Nothing.
 	 */
 	public async removeKey(name: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
 		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		await this._vaultKeyEntityStorageConnector.remove(name);
@@ -231,12 +239,12 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @returns The signature for the data.
 	 */
 	public async sign(name: string, data: Uint8Array): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
 
 		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		let signatureBytes;
@@ -246,7 +254,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		} else if (vaultKey.type === VaultKeyType.Secp256k1) {
 			signatureBytes = Secp256k1.sign(privateKeyBytes, data);
 		} else {
-			throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { keyType: vaultKey.type });
+			throw new GeneralError(EntityStorageVaultConnector.CLASS_NAME, "unsupportedKeyType", {
+				keyType: vaultKey.type
+			});
 		}
 
 		return signatureBytes;
@@ -260,13 +270,13 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @returns True if the verification is successful.
 	 */
 	public async verify(name: string, data: Uint8Array, signature: Uint8Array): Promise<boolean> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
-		Guards.uint8Array(this.CLASS_NAME, nameof(signature), signature);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(signature), signature);
 
 		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		if (vaultKey.type === VaultKeyType.Ed25519) {
@@ -277,7 +287,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 			return Secp256k1.verify(publicKeyBytes, data, signature);
 		}
 
-		throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { keyType: vaultKey.type });
+		throw new GeneralError(EntityStorageVaultConnector.CLASS_NAME, "unsupportedKeyType", {
+			keyType: vaultKey.type
+		});
 	}
 
 	/**
@@ -292,25 +304,25 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		encryptionType: VaultEncryptionType,
 		data: Uint8Array
 	): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultEncryptionType>(
-			this.CLASS_NAME,
+			EntityStorageVaultConnector.CLASS_NAME,
 			nameof(encryptionType),
 			encryptionType,
 			Object.values(VaultEncryptionType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
 
 		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		if (
 			encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
 			vaultKey.type !== VaultKeyType.ChaCha20Poly1305
 		) {
-			throw new GeneralError(this.CLASS_NAME, "keyTypeMismatch", {
+			throw new GeneralError(EntityStorageVaultConnector.CLASS_NAME, "keyTypeMismatch", {
 				encryptionType,
 				keyType: vaultKey.type
 			});
@@ -342,25 +354,25 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		encryptionType: VaultEncryptionType,
 		encryptedData: Uint8Array
 	): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultEncryptionType>(
-			this.CLASS_NAME,
+			EntityStorageVaultConnector.CLASS_NAME,
 			nameof(encryptionType),
 			encryptionType,
 			Object.values(VaultEncryptionType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(encryptedData), encryptedData);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(encryptedData), encryptedData);
 
 		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		if (
 			encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
 			vaultKey.type !== VaultKeyType.ChaCha20Poly1305
 		) {
-			throw new GeneralError(this.CLASS_NAME, "keyTypeMismatch", {
+			throw new GeneralError(EntityStorageVaultConnector.CLASS_NAME, "keyTypeMismatch", {
 				encryptionType,
 				keyType: vaultKey.type
 			});
@@ -383,8 +395,8 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @returns Nothing.
 	 */
 	public async setSecret<T>(name: string, item: T): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.defined(this.CLASS_NAME, nameof(item), item);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.defined(EntityStorageVaultConnector.CLASS_NAME, nameof(item), item);
 
 		const vaultSecret: VaultSecret = {
 			id: name,
@@ -401,12 +413,12 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @throws Error if the item is not found.
 	 */
 	public async getSecret<T>(name: string): Promise<T> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
 		const secret = await this._vaultSecretEntityStorageConnector.get(name);
 
 		if (Is.empty(secret)) {
-			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "secretNotFound", name);
 		}
 
 		return secret.data as T;
@@ -419,12 +431,12 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @throws Error if the item is not found.
 	 */
 	public async removeSecret(name: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
 		const secret = await this._vaultSecretEntityStorageConnector.get(name);
 
 		if (Is.empty(secret)) {
-			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "secretNotFound", name);
 		}
 
 		return this._vaultSecretEntityStorageConnector.remove(name);
