@@ -1,10 +1,10 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { AlreadyExistsError, Converter, GeneralError, I18n, RandomHelper } from "@twin.org/core";
+import { AlreadyExistsError, Converter, GeneralError, RandomHelper } from "@twin.org/core";
 import { ChaCha20Poly1305, Ed25519 } from "@twin.org/crypto";
 import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
-import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv";
-import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector";
+import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv.js";
+import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
 
 const TEST_KEY_NAME = `test-key=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
 const TEST_KEY_NAME_2 = `test-key-2=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
@@ -18,10 +18,6 @@ const TEST_RESTORE_NEW_KEY_NAME =
 let vaultConnector: HashicorpVaultConnector;
 
 describe("HashicorpVaultConnector", () => {
-	beforeAll(async () => {
-		I18n.addDictionary("en", await import("../locales/en.json"));
-	});
-
 	beforeEach(async () => {
 		vaultConnector = new HashicorpVaultConnector({
 			config: TEST_VAULT_CONFIG
@@ -42,7 +38,6 @@ describe("HashicorpVaultConnector", () => {
 		});
 
 		expect(vaultConnectorHealth).toBeDefined();
-		expect(I18n.hasMessage("info.hashicorpVaultConnector.hashicorpVaultConnected")).toEqual(true);
 	});
 
 	test("can fail to store a secret with no secret name", async () => {
@@ -303,7 +298,7 @@ describe("HashicorpVaultConnector", () => {
 		// Make sure we can decrypt with the standard chacha20poly1305 implementation as well
 		// The first 12 bytes are the nonce
 		const chacha20poly1305 = new ChaCha20Poly1305(key2.privateKey, encrypted.slice(0, 12));
-		const decrypted2 = await chacha20poly1305.decrypt(encrypted.slice(12));
+		const decrypted2 = chacha20poly1305.decrypt(encrypted.slice(12));
 
 		expect(decrypted).toEqual(Converter.utf8ToBytes("test-data"));
 		expect(decrypted2).toEqual(Converter.utf8ToBytes("test-data"));

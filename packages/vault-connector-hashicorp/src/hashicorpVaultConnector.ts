@@ -17,28 +17,28 @@ import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
 import { FetchHelper, HttpMethod, type IHttpHeaders } from "@twin.org/web";
-import type { IBackupKeyResponse } from "./models/IBackupKeyResponse";
-import type { ICreateKeyRequest } from "./models/ICreateKeyRequest";
-import type { IDecryptDataRequest } from "./models/IDecryptDataRequest";
-import type { IDecryptDataResponse } from "./models/IDecryptDataResponse";
-import type { IEncryptDataRequest } from "./models/IEncryptDataRequest";
-import type { IEncryptDataResponse } from "./models/IEncryptDataResponse";
-import type { IExportKeyResponse } from "./models/IExportKeyResponse";
-import type { IHashicorpVaultConnectorConfig } from "./models/IHashicorpVaultConnectorConfig";
-import type { IHashicorpVaultConnectorConstructorOptions } from "./models/IHashicorpVaultConnectorConstructorOptions";
-import type { IHashicorpVaultRequest } from "./models/IHashicorpVaultRequest";
-import type { IHashicorpVaultResponse } from "./models/IHashicorpVaultResponse";
-import type { IImportKeyRequest } from "./models/IImportKeyRequest";
-import type { IKeyDeleteConfigResponse } from "./models/IKeyDeleteConfigResponse";
-import type { IReadKeyResponse } from "./models/IReadKeyResponse";
-import type { IRestoreKeyRequest } from "./models/IRestoreKeyRequest";
-import type { ISecretData } from "./models/ISecretData";
-import type { ISecretVersionResponse } from "./models/ISecretVersionResponse";
-import type { ISignDataRequest } from "./models/ISignDataRequest";
-import type { ISignDataResponse } from "./models/ISignDataResponse";
-import type { IUpdateKeyConfigRequest } from "./models/IUpdateKeyConfigRequest";
-import type { IVerifyDataRequest } from "./models/IVerifyDataRequest";
-import type { IVerifyDataResponse } from "./models/IVerifyDataResponse";
+import type { IBackupKeyResponse } from "./models/IBackupKeyResponse.js";
+import type { ICreateKeyRequest } from "./models/ICreateKeyRequest.js";
+import type { IDecryptDataRequest } from "./models/IDecryptDataRequest.js";
+import type { IDecryptDataResponse } from "./models/IDecryptDataResponse.js";
+import type { IEncryptDataRequest } from "./models/IEncryptDataRequest.js";
+import type { IEncryptDataResponse } from "./models/IEncryptDataResponse.js";
+import type { IExportKeyResponse } from "./models/IExportKeyResponse.js";
+import type { IHashicorpVaultConnectorConfig } from "./models/IHashicorpVaultConnectorConfig.js";
+import type { IHashicorpVaultConnectorConstructorOptions } from "./models/IHashicorpVaultConnectorConstructorOptions.js";
+import type { IHashicorpVaultRequest } from "./models/IHashicorpVaultRequest.js";
+import type { IHashicorpVaultResponse } from "./models/IHashicorpVaultResponse.js";
+import type { IImportKeyRequest } from "./models/IImportKeyRequest.js";
+import type { IKeyDeleteConfigResponse } from "./models/IKeyDeleteConfigResponse.js";
+import type { IReadKeyResponse } from "./models/IReadKeyResponse.js";
+import type { IRestoreKeyRequest } from "./models/IRestoreKeyRequest.js";
+import type { ISecretData } from "./models/ISecretData.js";
+import type { ISecretVersionResponse } from "./models/ISecretVersionResponse.js";
+import type { ISignDataRequest } from "./models/ISignDataRequest.js";
+import type { ISignDataResponse } from "./models/ISignDataResponse.js";
+import type { IUpdateKeyConfigRequest } from "./models/IUpdateKeyConfigRequest.js";
+import type { IVerifyDataRequest } from "./models/IVerifyDataRequest.js";
+import type { IVerifyDataResponse } from "./models/IVerifyDataResponse.js";
 
 /**
  * Class for performing vault operations in entity storage.
@@ -119,6 +119,14 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		this._headers = {
 			"X-Vault-Token": this._config.token
 		};
+	}
+
+	/**
+	 * Returns the class name of the component.
+	 * @returns The class name of the component.
+	 */
+	public className(): string {
+		return HashicorpVaultConnector.CLASS_NAME;
 	}
 
 	/**
@@ -232,7 +240,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				{ headers: this._headers }
 			);
 
-			return response.data.data.secret as T;
+			return response.data.data.secret;
 		} catch (err) {
 			if (
 				Is.object<{ properties?: { httpStatus?: number } }>(err) &&

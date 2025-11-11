@@ -1,8 +1,8 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IComponent } from "@twin.org/core";
-import type { VaultEncryptionType } from "./vaultEncryptionType";
-import type { VaultKeyType } from "./vaultKeyType";
+import type { VaultEncryptionType } from "./vaultEncryptionType.js";
+import type { VaultKeyType } from "./vaultKeyType.js";
 
 /**
  * Interface describing a vault securely storing data.

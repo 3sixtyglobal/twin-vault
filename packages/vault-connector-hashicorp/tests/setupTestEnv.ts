@@ -3,8 +3,8 @@
 import path from "node:path";
 import { Guards } from "@twin.org/core";
 import * as dotenv from "dotenv";
-import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector";
-import type { IHashicorpVaultConnectorConfig } from "../src/models/IHashicorpVaultConnectorConfig";
+import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
+import type { IHashicorpVaultConnectorConfig } from "../src/models/IHashicorpVaultConnectorConfig.js";
 
 dotenv.config({
 	path: [path.join(__dirname, ".env"), path.join(__dirname, ".env.dev")],

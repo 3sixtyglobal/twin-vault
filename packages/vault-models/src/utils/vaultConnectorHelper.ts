@@ -3,7 +3,7 @@
 import { Guards, UnauthorizedError } from "@twin.org/core";
 import { nameof } from "@twin.org/nameof";
 import { Jwt, type IJwtHeader, type IJwtPayload } from "@twin.org/web";
-import type { IVaultConnector } from "../models/IVaultConnector";
+import type { IVaultConnector } from "../models/IVaultConnector.js";
 
 /**
  * Helpers for vault connectors.

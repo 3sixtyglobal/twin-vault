@@ -44,13 +44,13 @@ The name of the key to sign with.
 
 ##### header
 
-`IJwtHeader`
+`JWTHeaderParameters`
 
 The header to sign.
 
 ##### payload
 
-`IJwtPayload`
+`JWTPayload`
 
 The payload to sign.
 
@@ -72,11 +72,11 @@ Verify a JWT using a vault connector.
 
 ##### T
 
-`T` *extends* `IJwtHeader`
+`T` *extends* `JWTHeaderParameters`
 
 ##### U
 
-`U` *extends* `IJwtPayload`
+`U` *extends* `JWTPayload`
 
 #### Parameters
 

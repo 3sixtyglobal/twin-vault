@@ -5,10 +5,10 @@ import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
 import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
-import type { VaultKey } from "../src/entities/vaultKey";
-import type { VaultSecret } from "../src/entities/vaultSecret";
-import { EntityStorageVaultConnector } from "../src/entityStorageVaultConnector";
-import { initSchema } from "../src/schema";
+import type { VaultKey } from "../src/entities/vaultKey.js";
+import type { VaultSecret } from "../src/entities/vaultSecret.js";
+import { EntityStorageVaultConnector } from "../src/entityStorageVaultConnector.js";
+import { initSchema } from "../src/schema.js";
 
 const TEST_KEY_NAME = `test-key=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;
 const TEST_SECRET_NAME = `test-secret=+/@!£$%^&*()${Converter.bytesToHex(RandomHelper.generate(8))}`;

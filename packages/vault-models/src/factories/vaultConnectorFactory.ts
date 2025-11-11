@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import { Factory } from "@twin.org/core";
-import type { IVaultConnector } from "../models/IVaultConnector";
+import type { IVaultConnector } from "../models/IVaultConnector.js";
 
 /**
  * Factory for creating vault connectors.
