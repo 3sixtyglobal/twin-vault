@@ -47,6 +47,12 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	private readonly _vaultSecretEntityStorageConnector: IEntityStorageConnector<VaultSecret>;
 
 	/**
+	 * A prefix for the keys stored in the vault.
+	 * @internal
+	 */
+	private readonly _prefix?: string;
+
+	/**
 	 * Create a new instance of EntityStorageVaultConnector.
 	 * @param options The options for the connector.
 	 */
@@ -57,6 +63,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		this._vaultSecretEntityStorageConnector = EntityStorageConnectorFactory.get(
 			options?.vaultSecretEntityStorageType ?? "vault-secret"
 		);
+		this._prefix = options?.config?.prefix;
 	}
 
 	/**
@@ -82,7 +89,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 			Object.values(VaultKeyType)
 		);
 
-		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (!Is.empty(existingVaultKey)) {
 			throw new AlreadyExistsError(
 				EntityStorageVaultConnector.CLASS_NAME,
@@ -109,7 +118,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		}
 
 		const vaultKey: VaultKey = {
-			id: name,
+			id: fullKeyName,
 			type,
 			privateKey: Converter.bytesToBase64(privateKey),
 			publicKey: Is.undefined(publicKey) ? undefined : Converter.bytesToBase64(publicKey)
@@ -146,7 +155,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 			Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(publicKey), publicKey);
 		}
 
-		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (!Is.empty(existingVaultKey)) {
 			throw new AlreadyExistsError(
 				EntityStorageVaultConnector.CLASS_NAME,
@@ -156,7 +167,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		}
 
 		const vaultKey: VaultKey = {
-			id: name,
+			id: fullKeyName,
 			type,
 			privateKey: Converter.bytesToBase64(privateKey),
 			publicKey: Is.undefined(publicKey) ? undefined : Converter.bytesToBase64(publicKey)
@@ -188,7 +199,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	}> {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
@@ -212,14 +225,18 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(newName), newName);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
-		await this._vaultKeyEntityStorageConnector.remove(name);
+		await this._vaultKeyEntityStorageConnector.remove(fullKeyName);
 
-		vaultKey.id = newName;
+		const newFullKeyName = this.createKeyName(newName);
+
+		vaultKey.id = newFullKeyName;
 
 		await this._vaultKeyEntityStorageConnector.set(vaultKey);
 	}
@@ -232,12 +249,14 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	public async removeKey(name: string): Promise<void> {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
-		await this._vaultKeyEntityStorageConnector.remove(name);
+		await this._vaultKeyEntityStorageConnector.remove(fullKeyName);
 	}
 
 	/**
@@ -250,7 +269,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
@@ -282,7 +303,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
 		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(signature), signature);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
@@ -321,7 +344,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		);
 		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
@@ -371,7 +396,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		);
 		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(encryptedData), encryptedData);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
@@ -406,8 +433,10 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.defined(EntityStorageVaultConnector.CLASS_NAME, nameof(item), item);
 
+		const fullKeyName = this.createKeyName(name);
+
 		const vaultSecret: VaultSecret = {
-			id: name,
+			id: fullKeyName,
 			data: item
 		};
 
@@ -423,7 +452,9 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	public async getSecret<T>(name: string): Promise<T> {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const secret = await this._vaultSecretEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const secret = await this._vaultSecretEntityStorageConnector.get(fullKeyName);
 
 		if (Is.empty(secret)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "secretNotFound", name);
@@ -441,12 +472,24 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	public async removeSecret(name: string): Promise<void> {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const secret = await this._vaultSecretEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const secret = await this._vaultSecretEntityStorageConnector.get(fullKeyName);
 
 		if (Is.empty(secret)) {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "secretNotFound", name);
 		}
 
-		return this._vaultSecretEntityStorageConnector.remove(name);
+		return this._vaultSecretEntityStorageConnector.remove(fullKeyName);
+	}
+
+	/**
+	 * Create the key name with prefix if defined.
+	 * @param name The base name of the key.
+	 * @returns The key name with prefix if defined.
+	 * @internal
+	 */
+	private createKeyName(name: string): string {
+		return Is.stringValue(this._prefix) ? `${this._prefix}-${name}` : name;
 	}
 }

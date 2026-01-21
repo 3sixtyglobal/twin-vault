@@ -813,4 +813,75 @@ describe("EntityStorageVaultConnector", () => {
 
 		expect(store?.[0]).toBeUndefined();
 	});
+
+	test("can perform key operations with a prefix", async () => {
+		const vaultConnector = new EntityStorageVaultConnector({ config: { prefix: "foo" } });
+
+		await vaultConnector.createKey(TEST_KEY_NAME, VaultKeyType.ChaCha20Poly1305);
+
+		const store = vaultKeyEntityStorageConnector.getStore();
+		expect(store?.[0].id).toEqual(`foo-${TEST_KEY_NAME}`);
+		expect(store?.[0].type).toEqual(2);
+
+		const key = await vaultConnector.getKey(TEST_KEY_NAME);
+		expect(key.type).toEqual(2);
+
+		const encrypted = await vaultConnector.encrypt(
+			TEST_KEY_NAME,
+			VaultEncryptionType.ChaCha20Poly1305,
+			new Uint8Array([1, 2, 3, 4, 5])
+		);
+
+		expect(encrypted.length).toEqual(33);
+
+		const decrypted = await vaultConnector.decrypt(
+			TEST_KEY_NAME,
+			VaultEncryptionType.ChaCha20Poly1305,
+			encrypted
+		);
+		expect(decrypted).toEqual(new Uint8Array([1, 2, 3, 4, 5]));
+
+		await vaultConnector.createKey(`${TEST_KEY_NAME}-1`, VaultKeyType.Ed25519);
+
+		const signature = await vaultConnector.sign(
+			`${TEST_KEY_NAME}-1`,
+			new Uint8Array([1, 2, 3, 4, 5])
+		);
+		expect(signature).toBeDefined();
+
+		const verified = await vaultConnector.verify(
+			`${TEST_KEY_NAME}-1`,
+			new Uint8Array([1, 2, 3, 4, 5]),
+			signature
+		);
+		expect(verified).toEqual(true);
+
+		await vaultConnector.removeKey(`${TEST_KEY_NAME}-1`);
+
+		await vaultConnector.removeKey(TEST_KEY_NAME);
+
+		const storeAfter = vaultKeyEntityStorageConnector.getStore();
+		expect(storeAfter?.[0]).toBeUndefined();
+	});
+
+	test("can perform secret operations with a prefix", async () => {
+		const vaultConnector = new EntityStorageVaultConnector({ config: { prefix: "foo" } });
+
+		await vaultConnector.setSecret(TEST_SECRET_NAME, { foo: "bar" });
+
+		const store = vaultSecretEntityStorageConnector.getStore();
+
+		expect(store?.[0].id).toEqual(`foo-${TEST_SECRET_NAME}`);
+		expect(store?.[0].data).toEqual({ foo: "bar" });
+
+		const secret = await vaultConnector.getSecret(TEST_SECRET_NAME);
+
+		expect(secret).toEqual({ foo: "bar" });
+
+		await vaultConnector.removeSecret(TEST_SECRET_NAME);
+
+		const storeAfter = vaultSecretEntityStorageConnector.getStore();
+
+		expect(storeAfter?.[0]).toBeUndefined();
+	});
 });

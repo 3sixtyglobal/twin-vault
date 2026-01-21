@@ -3,5 +3,6 @@
 export * from "./entities/vaultKey.js";
 export * from "./entities/vaultSecret.js";
 export * from "./entityStorageVaultConnector.js";
+export * from "./models/IEntityStorageVaultConnectorConfig.js";
 export * from "./models/IEntityStorageVaultConnectorConstructorOptions.js";
 export * from "./schema.js";

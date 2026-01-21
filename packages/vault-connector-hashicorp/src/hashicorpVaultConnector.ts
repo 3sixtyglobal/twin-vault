@@ -91,6 +91,12 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	private readonly _headers: IHttpHeaders;
 
 	/**
+	 * A prefix for the keys stored in the vault.
+	 * @internal
+	 */
+	private readonly _prefix?: string;
+
+	/**
 	 * Create a new instance of HashicorpVaultConnector.
 	 * @param options The options for the vault connector.
 	 */
@@ -119,6 +125,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		this._headers = {
 			"X-Vault-Token": this._config.token
 		};
+		this._prefix = this._config.prefix;
 	}
 
 	/**
@@ -1307,7 +1314,11 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @internal
 	 */
 	private getEncodedName(name: string): string {
-		return name.replace(/[^\dA-Za-z-]/g, "_").replace(/[_-]+$/, "");
+		const safeName = name.replace(/[^\dA-Za-z-]/g, "_").replace(/[_-]+$/, "");
+
+		return Is.stringValue(this._prefix)
+			? `${encodeURIComponent(this._prefix)}_${safeName}`
+			: safeName;
 	}
 
 	/**

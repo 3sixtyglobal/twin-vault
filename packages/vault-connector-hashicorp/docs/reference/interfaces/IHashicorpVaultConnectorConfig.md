@@ -57,3 +57,11 @@ The request timeout in milliseconds.
 > `optional` **namespace**: `string`
 
 The namespace for the Hashicorp Vault if using Vault Enterprise.
+
+***
+
+### prefix?
+
+> `optional` **prefix**: `string`
+
+A prefix for the keys stored in the Hashicorp Vault.

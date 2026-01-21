@@ -8,6 +8,7 @@
 
 ## Interfaces
 
+- [IEntityStorageVaultConnectorConfig](interfaces/IEntityStorageVaultConnectorConfig.md)
 - [IEntityStorageVaultConnectorConstructorOptions](interfaces/IEntityStorageVaultConnectorConstructorOptions.md)
 
 ## Functions

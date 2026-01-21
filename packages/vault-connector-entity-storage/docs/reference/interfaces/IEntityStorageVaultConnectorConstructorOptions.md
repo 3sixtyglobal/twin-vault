@@ -29,3 +29,11 @@ The vault secret entity storage connector type.
 ```ts
 vault-secret
 ```
+
+***
+
+### config?
+
+> `optional` **config**: [`IEntityStorageVaultConnectorConfig`](IEntityStorageVaultConnectorConfig.md)
+
+The entity storage vault connector configuration.

@@ -832,4 +832,64 @@ describe("HashicorpVaultConnector", () => {
 			}
 		});
 	});
+
+	test("can perform key operations with a prefix", async () => {
+		const vaultConnector2 = new HashicorpVaultConnector({
+			config: { ...TEST_VAULT_CONFIG, prefix: "foo" }
+		});
+
+		const prefixKey = "key-with-prefix";
+
+		await vaultConnector2.createKey(prefixKey, VaultKeyType.ChaCha20Poly1305);
+
+		const key = await vaultConnector2.getKey(prefixKey);
+		expect(key.type).toEqual(2);
+
+		const encrypted = await vaultConnector2.encrypt(
+			prefixKey,
+			VaultEncryptionType.ChaCha20Poly1305,
+			new Uint8Array([1, 2, 3, 4, 5])
+		);
+
+		expect(encrypted.length).toEqual(33);
+
+		const decrypted = await vaultConnector2.decrypt(
+			prefixKey,
+			VaultEncryptionType.ChaCha20Poly1305,
+			encrypted
+		);
+		expect(decrypted).toEqual(new Uint8Array([1, 2, 3, 4, 5]));
+
+		await vaultConnector2.createKey(`${prefixKey}-1`, VaultKeyType.Ed25519);
+
+		const signature = await vaultConnector2.sign(`${prefixKey}-1`, new Uint8Array([1, 2, 3, 4, 5]));
+		expect(signature).toBeDefined();
+
+		const verified = await vaultConnector2.verify(
+			`${prefixKey}-1`,
+			new Uint8Array([1, 2, 3, 4, 5]),
+			signature
+		);
+		expect(verified).toEqual(true);
+
+		await vaultConnector2.removeKey(`${prefixKey}-1`);
+
+		await vaultConnector2.removeKey(prefixKey);
+	});
+
+	test("can perform secret operations with a prefix", async () => {
+		const vaultConnector2 = new HashicorpVaultConnector({
+			config: { ...TEST_VAULT_CONFIG, prefix: "foo" }
+		});
+
+		const prefixSecret = "secret-with-prefix";
+
+		await vaultConnector2.setSecret(prefixSecret, { foo: "bar" });
+
+		const secret = await vaultConnector2.getSecret(prefixSecret);
+
+		expect(secret).toEqual({ foo: "bar" });
+
+		await vaultConnector2.removeSecret(prefixSecret);
+	});
 });
