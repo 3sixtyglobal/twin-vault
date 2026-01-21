@@ -1,5 +1,12 @@
 # @twin.org/vault-models - Changelog
 
+## [0.0.3-next.2](https://github.com/twinfoundation/vault/compare/vault-models-v0.0.3-next.1...vault-models-v0.0.3-next.2) (2026-01-21)
+
+
+### Miscellaneous Chores
+
+* **vault-models:** Synchronize repo versions
+
 ## [0.0.3-next.1](https://github.com/twinfoundation/vault/compare/vault-models-v0.0.3-next.0...vault-models-v0.0.3-next.1) (2025-11-11)
 
 

@@ -1,5 +1,19 @@
 # @twin.org/vault-connector-entity-storage - Changelog
 
+## [0.0.3-next.2](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.3-next.1...vault-connector-entity-storage-v0.0.3-next.2) (2026-01-21)
+
+
+### Features
+
+* add prefix configuration ([#41](https://github.com/twinfoundation/vault/issues/41)) ([03188b4](https://github.com/twinfoundation/vault/commit/03188b4f5e0c0c936620d116a65a957bbb95ff9d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.3-next.1 to 0.0.3-next.2
+
 ## [0.0.3-next.1](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.3-next.0...vault-connector-entity-storage-v0.0.3-next.1) (2025-11-11)
 
 
