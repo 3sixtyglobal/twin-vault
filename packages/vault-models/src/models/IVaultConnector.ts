@@ -54,6 +54,16 @@ export interface IVaultConnector extends IComponent {
 	}>;
 
 	/**
+	 * Get the type of a key from the vault without retrieving the key material.
+	 * This method supports the principle of least privilege by only exposing
+	 * metadata when key material is not needed.
+	 * @param name The name of the key.
+	 * @returns The key type.
+	 * @throws NotFoundError if the key does not exist.
+	 */
+	getKeyType(name: string): Promise<VaultKeyType>;
+
+	/**
 	 * Rename a key in the vault.
 	 * @param name The name of the key to rename.
 	 * @param newName The new name of the key.

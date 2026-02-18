@@ -272,6 +272,75 @@ describe("EntityStorageVaultConnector", () => {
 		);
 	});
 
+	test("can fail to get key type with no key name", async () => {
+		const vaultConnector = new EntityStorageVaultConnector();
+
+		await expect(vaultConnector.getKeyType(undefined as unknown as string)).rejects.toMatchObject({
+			name: "GuardError",
+			message: "guard.string",
+			properties: {
+				property: "name",
+				value: "undefined"
+			}
+		});
+	});
+
+	test("can fail to get key type if key doesn't exist", async () => {
+		const vaultConnector = new EntityStorageVaultConnector();
+
+		await expect(vaultConnector.getKeyType(TEST_KEY_NAME)).rejects.toMatchObject({
+			name: "NotFoundError",
+			properties: {
+				notFoundId: TEST_KEY_NAME
+			}
+		});
+	});
+
+	test("can get key type for Ed25519 key", async () => {
+		await vaultKeyEntityStorageConnector.set({
+			id: TEST_KEY_NAME,
+			type: VaultKeyType.Ed25519,
+			privateKey: "vOpvrUcuiDJF09hoe9AWa4OUqcNqr6RpGOuj/A57gag=",
+			publicKey: "KylrGqIEfx7mRdQKNhu+o0l0MU/WilWkOQ2YhkhYC5Y="
+		});
+
+		const vaultConnector = new EntityStorageVaultConnector();
+
+		const keyType = await vaultConnector.getKeyType(TEST_KEY_NAME);
+
+		expect(keyType).toEqual(VaultKeyType.Ed25519);
+	});
+
+	test("can get key type for Secp256k1 key", async () => {
+		await vaultKeyEntityStorageConnector.set({
+			id: TEST_KEY_NAME,
+			type: VaultKeyType.Secp256k1,
+			privateKey: "vOpvrUcuiDJF09hoe9AWa4OUqcNqr6RpGOuj/A57gag=",
+			publicKey: "AylrGqIEfx7mRdQKNhu+o0l0MU/WilWkOQ2YhkhYC5Y="
+		});
+
+		const vaultConnector = new EntityStorageVaultConnector();
+
+		const keyType = await vaultConnector.getKeyType(TEST_KEY_NAME);
+
+		expect(keyType).toEqual(VaultKeyType.Secp256k1);
+	});
+
+	test("can get key type for ChaCha20Poly1305 key", async () => {
+		await vaultKeyEntityStorageConnector.set({
+			id: TEST_KEY_NAME,
+			type: VaultKeyType.ChaCha20Poly1305,
+			privateKey: "vOpvrUcuiDJF09hoe9AWa4OUqcNqr6RpGOuj/A57gag=",
+			publicKey: undefined
+		});
+
+		const vaultConnector = new EntityStorageVaultConnector();
+
+		const keyType = await vaultConnector.getKeyType(TEST_KEY_NAME);
+
+		expect(keyType).toEqual(VaultKeyType.ChaCha20Poly1305);
+	});
+
 	test("can fail to rename a key with no key name", async () => {
 		const vaultConnector = new EntityStorageVaultConnector();
 

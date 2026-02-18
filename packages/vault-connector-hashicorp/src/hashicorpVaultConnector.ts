@@ -541,6 +541,30 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	}
 
 	/**
+	 * Get the type of a key from the vault without retrieving the key material.
+	 * @param name The name of the key.
+	 * @returns The key type.
+	 */
+	public async getKeyType(name: string): Promise<VaultKeyType> {
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+
+		let keyDetails;
+		try {
+			keyDetails = await this.readKey(name);
+		} catch (err) {
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
+		}
+
+		return this.mapHashicorpKeyType(keyDetails.type);
+	}
+
+	/**
 	 * Rename a key in the vault.
 	 * @param name The name of the key to rename.
 	 * @param newName The new name of the key.

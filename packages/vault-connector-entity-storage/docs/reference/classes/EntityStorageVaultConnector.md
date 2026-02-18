@@ -164,6 +164,32 @@ The key, publicKey can be undefined if key is symmetric.
 
 ***
 
+### getKeyType()
+
+> **getKeyType**(`name`): `Promise`\<`VaultKeyType`\>
+
+Get the type of a key from the vault without retrieving the key material.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key.
+
+#### Returns
+
+`Promise`\<`VaultKeyType`\>
+
+The key type.
+
+#### Implementation of
+
+`IVaultConnector.getKeyType`
+
+***
+
 ### renameKey()
 
 > **renameKey**(`name`, `newName`): `Promise`\<`void`\>

@@ -216,6 +216,24 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	}
 
 	/**
+	 * Get the type of a key from the vault without retrieving the key material.
+	 * @param name The name of the key.
+	 * @returns The key type.
+	 */
+	public async getKeyType(name: string): Promise<VaultKeyType> {
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
+		if (Is.empty(vaultKey)) {
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
+		}
+
+		return vaultKey.type;
+	}
+
+	/**
 	 * Rename a key in the vault.
 	 * @param name The name of the key to rename.
 	 * @param newName The new name of the key.

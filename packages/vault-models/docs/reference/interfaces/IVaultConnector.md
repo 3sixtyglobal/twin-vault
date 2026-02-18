@@ -98,6 +98,34 @@ The key, publicKey can be undefined if key is symmetric.
 
 ***
 
+### getKeyType()
+
+> **getKeyType**(`name`): `Promise`\<[`VaultKeyType`](../type-aliases/VaultKeyType.md)\>
+
+Get the type of a key from the vault without retrieving the key material.
+This method supports the principle of least privilege by only exposing
+metadata when key material is not needed.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key.
+
+#### Returns
+
+`Promise`\<[`VaultKeyType`](../type-aliases/VaultKeyType.md)\>
+
+The key type.
+
+#### Throws
+
+NotFoundError if the key does not exist.
+
+***
+
 ### renameKey()
 
 > **renameKey**(`name`, `newName`): `Promise`\<`void`\>

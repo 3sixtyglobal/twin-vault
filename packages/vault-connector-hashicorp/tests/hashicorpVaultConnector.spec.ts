@@ -522,6 +522,69 @@ describe("HashicorpVaultConnector", () => {
 		await cleanupKeys([TEST_KEY_NAME]);
 	});
 
+	test("can fail to get key type with no key name", async () => {
+		await expect(vaultConnector.getKeyType(undefined as unknown as string)).rejects.toMatchObject({
+			name: "GuardError",
+			message: "guard.string",
+			properties: {
+				property: "name",
+				value: "undefined"
+			}
+		});
+	});
+
+	test("can fail to get key type if key doesn't exist", async () => {
+		await expect(vaultConnector.getKeyType("non-existent-key")).rejects.toMatchObject({
+			name: "NotFoundError",
+			properties: {
+				notFoundId: "non-existent-key"
+			}
+		});
+	});
+
+	test("can get key type for Ed25519 key", async () => {
+		const keyName = TEST_KEY_NAME;
+		const keyType = VaultKeyType.Ed25519;
+
+		await vaultConnector.createKey(keyName, keyType);
+
+		const retrievedKeyType = await vaultConnector.getKeyType(keyName);
+
+		expect(retrievedKeyType).toEqual(keyType);
+
+		await cleanupKeys([TEST_KEY_NAME]);
+	});
+
+	test("can get key type for ChaCha20Poly1305 key", async () => {
+		const keyName = TEST_KEY_NAME;
+		const keyType = VaultKeyType.ChaCha20Poly1305;
+
+		await vaultConnector.createKey(keyName, keyType);
+
+		const retrievedKeyType = await vaultConnector.getKeyType(keyName);
+
+		expect(retrievedKeyType).toEqual(keyType);
+
+		await cleanupKeys([TEST_KEY_NAME]);
+	});
+
+	test("can get key type without exposing private key material", async () => {
+		const keyName = TEST_KEY_NAME;
+		const keyType = VaultKeyType.Ed25519;
+
+		await vaultConnector.createKey(keyName, keyType);
+
+		// Spy on exportKey to ensure it's NOT called
+		const exportKeySpy = vi.spyOn(vaultConnector, "exportKey");
+
+		const retrievedKeyType = await vaultConnector.getKeyType(keyName);
+
+		expect(retrievedKeyType).toEqual(keyType);
+		expect(exportKeySpy).not.toHaveBeenCalled();
+
+		await cleanupKeys([TEST_KEY_NAME]);
+	});
+
 	test("can sign data with a key", async () => {
 		const keyName = TEST_KEY_NAME;
 		const keyType = VaultKeyType.Ed25519;
