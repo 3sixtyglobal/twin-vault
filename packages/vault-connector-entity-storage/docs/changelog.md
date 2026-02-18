@@ -1,5 +1,19 @@
 # @twin.org/vault-connector-entity-storage - Changelog
 
+## [0.0.3-next.3](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.3-next.2...vault-connector-entity-storage-v0.0.3-next.3) (2026-02-18)
+
+
+### Features
+
+* added get type method ([#43](https://github.com/twinfoundation/vault/issues/43)) ([b3ba41d](https://github.com/twinfoundation/vault/commit/b3ba41db7829117be7b79af33957da7476d0b81f))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.3-next.2 to 0.0.3-next.3
+
 ## [0.0.3-next.2](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.3-next.1...vault-connector-entity-storage-v0.0.3-next.2) (2026-01-21)
 
 
