@@ -1,7 +1,7 @@
 {
 	"name": "@twin.org/vault-connector-hashicorp",
 	"version": "0.0.3-next.3",
-	"description": "HashiCorp Vault connector for transit cryptography and KV secret operations",
+	"description": "HashiCorp Vault connector for transit cryptography and KV secret workflows",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/twinfoundation/vault.git",

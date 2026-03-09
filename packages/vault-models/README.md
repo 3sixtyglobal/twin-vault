@@ -1,6 +1,6 @@
 # TWIN Vault Models
 
-This package provides a reusable vault component for secure key and secret workflows across services.
+This package defines the shared contracts, enums, and factory helpers used by vault connectors, so applications can integrate key and secret operations through a consistent model.
 
 ## Installation
 

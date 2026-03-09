@@ -1,7 +1,7 @@
 {
 	"name": "@twin.org/vault-connector-entity-storage",
 	"version": "0.0.3-next.3",
-	"description": "Entity storage connector for persisting vault keys and secrets across application workflows",
+	"description": "Entity storage backed connector for persisted vault key and secret workflows",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/twinfoundation/vault.git",

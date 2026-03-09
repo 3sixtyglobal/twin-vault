@@ -1,14 +1,14 @@
 # TWIN Vault
 
-This repository brings together modular vault components that help teams implement secure key and secret workflows with a consistent developer experience. The packages focus on a shared operational model for key lifecycle, encryption, signing, and secret handling so services can integrate vault capabilities without rebuilding the same foundations for each project.
+This repository provides a focused set of vault components that help teams implement key management, encryption, signing, and secret handling with a consistent integration approach across services. The packages are designed to reduce repeated implementation work by combining shared contracts with connector specific behaviour in a way that remains predictable for both local development and production operations.
 
-By combining common models with connector implementations for different backends, the repository supports local development and managed infrastructure patterns while keeping integration behaviour predictable across environments.
+Together, these components support a clean boundary between application logic and vault infrastructure, making it easier to adopt secure workflows, swap connector implementations when needed, and maintain reliable behaviour across environments as systems evolve.
 
 ## Packages
 
-- [vault-models](packages/vault-models/README.md) - Shared vault models, contracts, and factory utilities for consistent connector integration.
-- [vault-connector-entity-storage](packages/vault-connector-entity-storage/README.md) - Entity storage connector for persisting vault keys and secrets across application workflows.
-- [vault-connector-hashicorp](packages/vault-connector-hashicorp/README.md) - [HashiCorp Vault](https://developer.hashicorp.com/vault) connector for transit cryptography and KV secret operations.
+- [vault-models](packages/vault-models/README.md) - Shared models and factory utilities for consistent vault connector integration
+- [vault-connector-entity-storage](packages/vault-connector-entity-storage/README.md) - Entity storage backed connector for persisted vault key and secret workflows
+- [vault-connector-hashicorp](packages/vault-connector-hashicorp/README.md) - HashiCorp Vault connector for transit cryptography and KV secret workflows
 
 ## Contributing
 
