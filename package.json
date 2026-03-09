@@ -1,7 +1,7 @@
 {
 	"name": "@twin.org/vault",
 	"version": "0.0.0",
-	"description": "Vault",
+	"description": "Reusable vault building blocks for key management, encryption, and secret workflows",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/twinfoundation/vault.git"

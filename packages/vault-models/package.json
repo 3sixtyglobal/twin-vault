@@ -1,7 +1,7 @@
 {
 	"name": "@twin.org/vault-models",
 	"version": "0.0.3-next.3",
-	"description": "Models which define the structure of the vault contracts and connectors",
+	"description": "Shared models, types, and factory helpers for key management, encryption operations, and connector integration",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/twinfoundation/vault.git",

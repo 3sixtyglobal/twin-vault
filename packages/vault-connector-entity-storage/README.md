@@ -1,6 +1,6 @@
 # TWIN Vault Connector Entity Storage
 
-Vault connector implementation using entity storage.
+Entity storage connector for persisting vault keys and secrets with signing and encryption support.
 
 ## Installation
 

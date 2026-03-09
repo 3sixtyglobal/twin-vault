@@ -1,6 +1,6 @@
 # TWIN Vault Models
 
-Models which define the structure of the vault contracts and connectors.
+Shared models, types, and factory helpers for key management, encryption operations, and connector integration.
 
 ## Installation
 
