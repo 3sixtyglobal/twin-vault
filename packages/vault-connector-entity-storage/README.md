@@ -1,6 +1,6 @@
 # TWIN Vault Connector Entity Storage
 
-Entity storage connector for persisting vault keys and secrets with signing and encryption support.
+This package provides a reusable vault component for secure key and secret workflows across services.
 
 ## Installation
 

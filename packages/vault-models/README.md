@@ -1,6 +1,6 @@
 # TWIN Vault Models
 
-Shared models, types, and factory helpers for key management, encryption operations, and connector integration.
+This package provides a reusable vault component for secure key and secret workflows across services.
 
 ## Installation
 

@@ -1,14 +1,14 @@
 # TWIN Vault
 
-This repository provides reusable building blocks for integrating secure key and secret workflows into applications and services. The packages are designed to standardise how vault operations are modelled, while allowing different connector implementations for local persistence and managed vault infrastructure.
+This repository brings together modular vault components that help teams implement secure key and secret workflows with a consistent developer experience. The packages focus on a shared operational model for key lifecycle, encryption, signing, and secret handling so services can integrate vault capabilities without rebuilding the same foundations for each project.
 
-Together, these packages support consistent key lifecycle handling, encryption and signing operations, and secret management patterns so teams can adopt a common vault abstraction across development and production environments.
+By combining common models with connector implementations for different backends, the repository supports local development and managed infrastructure patterns while keeping integration behaviour predictable across environments.
 
 ## Packages
 
-- [vault-models](packages/vault-models/README.md) - Shared models, types, and factory helpers for key management, encryption operations, and connector integration.
-- [vault-connector-entity-storage](packages/vault-connector-entity-storage/README.md) - Entity storage connector for persisting vault keys and secrets with signing and encryption support.
-- [vault-connector-hashicorp](packages/vault-connector-hashicorp/README.md) - HashiCorp Vault connector for transit and KV operations, including key lifecycle and secret management.
+- [vault-models](packages/vault-models/README.md) - Shared vault models, contracts, and factory utilities for consistent connector integration.
+- [vault-connector-entity-storage](packages/vault-connector-entity-storage/README.md) - Entity storage connector for persisting vault keys and secrets across application workflows.
+- [vault-connector-hashicorp](packages/vault-connector-hashicorp/README.md) - [HashiCorp Vault](https://developer.hashicorp.com/vault) connector for transit cryptography and KV secret operations.
 
 ## Contributing
 

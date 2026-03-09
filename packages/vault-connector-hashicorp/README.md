@@ -1,11 +1,19 @@
 # TWIN Vault Connector Hashicorp
 
-HashiCorp Vault connector for transit and KV operations, including key lifecycle and secret management.
+This package provides a reusable vault component for secure key and secret workflows across services.
 
 ## Installation
 
 ```shell
 npm install @twin.org/vault-connector-hashicorp
+```
+
+## Testing
+
+Docker launch configuration for integration test components.
+
+```shell
+docker run -d --name twin-vault-hashicorp --cap-add=IPC_LOCK -p 8200:8200 -e VAULT_DEV_ROOT_TOKEN_ID=root hashicorp/vault:1.18.0
 ```
 
 ## Examples

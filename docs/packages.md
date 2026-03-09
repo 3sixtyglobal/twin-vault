@@ -2,7 +2,7 @@
 
 ## vault-models
 
-This package defines shared vault interfaces, factories, and type models for key management, encryption workflows, and connector interoperability. It provides a common contract layer that keeps vault integrations consistent across different connector implementations.
+This package serves as the shared contract layer for vault integrations. It defines common models and factory utilities that keep key management, encryption, and secret workflows consistent across connector implementations. By centralising these core abstractions, it provides a reliable base for interoperability throughout the repository.
 
 - [README](../packages/vault-models/README.md)
 - [Examples](../packages/vault-models/docs/examples.md)
@@ -10,7 +10,7 @@ This package defines shared vault interfaces, factories, and type models for key
 
 ## vault-connector-entity-storage
 
-This package provides a connector implementation that stores vault keys and secrets using entity storage abstractions. It enables applications to run signing, verification, encryption, and secret operations through a persistence-friendly backend.
+This package provides an entity storage backed connector for vault operations. It handles persisted key and secret workflows so applications can use signing, verification, encryption, and secret access with a consistent connector interface. Its design supports maintainable integration with storage centric service architectures.
 
 - [README](../packages/vault-connector-entity-storage/README.md)
 - [Examples](../packages/vault-connector-entity-storage/docs/examples.md)
@@ -18,7 +18,7 @@ This package provides a connector implementation that stores vault keys and secr
 
 ## vault-connector-hashicorp
 
-This package integrates with [HashiCorp Vault](https://developer.hashicorp.com/vault) to provide key lifecycle management, transit cryptography, and secret storage operations. It is suited to deployments that need an external vault service with operational controls and policy-based access.
+This package integrates with [HashiCorp Vault](https://developer.hashicorp.com/vault) for transit cryptography and KV secret workflows. It focuses on external vault service integration for teams that need centralised operational controls, policy based access, and managed secret infrastructure.
 
 - [README](../packages/vault-connector-hashicorp/README.md)
 - [Examples](../packages/vault-connector-hashicorp/docs/examples.md)
