@@ -1,4 +1,4 @@
-# @twin.org/vault-connector-entity-storage - Changelog
+# Changelog
 
 ## [0.0.3-next.3](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.3-next.2...vault-connector-entity-storage-v0.0.3-next.3) (2026-02-18)
 
