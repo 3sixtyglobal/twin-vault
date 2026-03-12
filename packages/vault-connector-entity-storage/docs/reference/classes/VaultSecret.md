@@ -14,7 +14,7 @@ Class defining a vault secret.
 
 ## Properties
 
-### id
+### id {#id}
 
 > **id**: `string`
 
@@ -22,7 +22,7 @@ The id.
 
 ***
 
-### data
+### data {#data}
 
 > **data**: `unknown`
 

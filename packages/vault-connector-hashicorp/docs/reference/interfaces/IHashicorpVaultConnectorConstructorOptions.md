@@ -4,7 +4,7 @@ Options for the hashicorp vault connector constructor.
 
 ## Properties
 
-### config
+### config {#config}
 
 > **config**: [`IHashicorpVaultConnectorConfig`](IHashicorpVaultConnectorConfig.md)
 

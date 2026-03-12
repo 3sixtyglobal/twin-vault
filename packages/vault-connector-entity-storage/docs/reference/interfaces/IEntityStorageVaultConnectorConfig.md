@@ -4,7 +4,7 @@ Config for the entity storage vault connector constructor.
 
 ## Properties
 
-### prefix?
+### prefix? {#prefix}
 
 > `optional` **prefix**: `string`
 

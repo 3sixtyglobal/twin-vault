@@ -28,7 +28,7 @@ The options for the vault connector.
 
 ## Properties
 
-### CLASS\_NAME
+### CLASS\_NAME {#class_name}
 
 > `readonly` `static` **CLASS\_NAME**: `string`
 
@@ -36,7 +36,7 @@ Runtime name for the class.
 
 ***
 
-### NAMESPACE
+### NAMESPACE {#namespace}
 
 > `readonly` `static` **NAMESPACE**: `string` = `"hashicorp"`
 
@@ -44,7 +44,7 @@ The namespace supported by the vault connector.
 
 ## Methods
 
-### className()
+### className() {#classname}
 
 > **className**(): `string`
 
@@ -62,7 +62,7 @@ The class name of the component.
 
 ***
 
-### bootstrap()
+### bootstrap() {#bootstrap}
 
 > **bootstrap**(`nodeLoggingComponentType?`): `Promise`\<`boolean`\>
 
@@ -88,7 +88,7 @@ True if the bootstrapping process was successful.
 
 ***
 
-### setSecret()
+### setSecret() {#setsecret}
 
 > **setSecret**\<`T`\>(`name`, `data`): `Promise`\<`void`\>
 
@@ -126,7 +126,7 @@ Nothing.
 
 ***
 
-### getSecret()
+### getSecret() {#getsecret}
 
 > **getSecret**\<`T`\>(`name`): `Promise`\<`T`\>
 
@@ -162,7 +162,7 @@ Error if the item is not found.
 
 ***
 
-### removeSecret()
+### removeSecret() {#removesecret}
 
 > **removeSecret**(`name`): `Promise`\<`void`\>
 
@@ -192,7 +192,7 @@ Error if the item is not found.
 
 ***
 
-### createKey()
+### createKey() {#createkey}
 
 > **createKey**(`name`, `type`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -224,7 +224,7 @@ The public key for the key pair.
 
 ***
 
-### addKey()
+### addKey() {#addkey}
 
 > **addKey**(`name`, `type`, `privateKey`, `publicKey?`): `Promise`\<`void`\>
 
@@ -268,7 +268,7 @@ Nothing.
 
 ***
 
-### getKey()
+### getKey() {#getkey}
 
 > **getKey**(`name`): `Promise`\<\{ `type`: `VaultKeyType`; `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
@@ -294,7 +294,7 @@ The key, publicKey can be undefined if key is symmetric.
 
 ***
 
-### getKeyType()
+### getKeyType() {#getkeytype}
 
 > **getKeyType**(`name`): `Promise`\<`VaultKeyType`\>
 
@@ -320,7 +320,7 @@ The key type.
 
 ***
 
-### renameKey()
+### renameKey() {#renamekey}
 
 > **renameKey**(`name`, `newName`): `Promise`\<`void`\>
 
@@ -352,7 +352,7 @@ Nothing.
 
 ***
 
-### removeKey()
+### removeKey() {#removekey}
 
 > **removeKey**(`name`): `Promise`\<`void`\>
 
@@ -378,7 +378,7 @@ Nothing.
 
 ***
 
-### sign()
+### sign() {#sign}
 
 > **sign**(`name`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -410,7 +410,7 @@ The signature.
 
 ***
 
-### verify()
+### verify() {#verify}
 
 > **verify**(`name`, `data`, `signature`): `Promise`\<`boolean`\>
 
@@ -448,7 +448,7 @@ True if the signature is valid.
 
 ***
 
-### encrypt()
+### encrypt() {#encrypt}
 
 > **encrypt**(`name`, `encryptionType`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -486,7 +486,7 @@ The encrypted data.
 
 ***
 
-### decrypt()
+### decrypt() {#decrypt}
 
 > **decrypt**(`name`, `encryptionType`, `encryptedData`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -524,7 +524,7 @@ The decrypted data.
 
 ***
 
-### getSecretVersions()
+### getSecretVersions() {#getsecretversions}
 
 > **getSecretVersions**(`name`): `Promise`\<`number`[]\>
 
@@ -550,7 +550,7 @@ Error if the secret is not found.
 
 ***
 
-### updateKeyConfig()
+### updateKeyConfig() {#updatekeyconfig}
 
 > **updateKeyConfig**(`name`, `deletionAllowed?`, `exportable?`): `Promise`\<`void`\>
 
@@ -584,7 +584,7 @@ Nothing.
 
 ***
 
-### backupKey()
+### backupKey() {#backupkey}
 
 > **backupKey**(`name`): `Promise`\<`string`\>
 
@@ -610,7 +610,7 @@ Error if the key cannot be exported or found.
 
 ***
 
-### restoreKey()
+### restoreKey() {#restorekey}
 
 > **restoreKey**(`name`, `backup`): `Promise`\<`void`\>
 
@@ -642,7 +642,7 @@ Error if the key cannot be restored.
 
 ***
 
-### importKey()
+### importKey() {#importkey}
 
 > **importKey**(`name`, `type`, `privateKeyPem`): `Promise`\<`void`\>
 
@@ -680,7 +680,7 @@ Error if the key cannot be imported.
 
 ***
 
-### exportKey()
+### exportKey() {#exportkey}
 
 > **exportKey**(`name`, `keyPath`, `version?`): `Promise`\<\{ `type`: `VaultKeyType`; `key`: `Uint8Array`; `name`: `string`; \}\>
 
@@ -718,7 +718,7 @@ Error if the key cannot be exported or found.
 
 ***
 
-### getKeyDeleteConfiguration()
+### getKeyDeleteConfiguration() {#getkeydeleteconfiguration}
 
 > **getKeyDeleteConfiguration**(`name`): `Promise`\<`boolean`\>
 

@@ -28,7 +28,7 @@ The options for the connector.
 
 ## Properties
 
-### NAMESPACE
+### NAMESPACE {#namespace}
 
 > `readonly` `static` **NAMESPACE**: `string` = `"entity-storage"`
 
@@ -36,7 +36,7 @@ The namespace supported by the vault connector.
 
 ***
 
-### CLASS\_NAME
+### CLASS\_NAME {#class_name}
 
 > `readonly` `static` **CLASS\_NAME**: `string`
 
@@ -44,7 +44,7 @@ Runtime name for the class.
 
 ## Methods
 
-### className()
+### className() {#classname}
 
 > **className**(): `string`
 
@@ -62,7 +62,7 @@ The class name of the component.
 
 ***
 
-### createKey()
+### createKey() {#createkey}
 
 > **createKey**(`name`, `type`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -94,7 +94,7 @@ The public key for the key pair.
 
 ***
 
-### addKey()
+### addKey() {#addkey}
 
 > **addKey**(`name`, `type`, `privateKey`, `publicKey?`): `Promise`\<`void`\>
 
@@ -138,7 +138,7 @@ Nothing.
 
 ***
 
-### getKey()
+### getKey() {#getkey}
 
 > **getKey**(`name`): `Promise`\<\{ `type`: `VaultKeyType`; `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
@@ -164,7 +164,7 @@ The key, publicKey can be undefined if key is symmetric.
 
 ***
 
-### getKeyType()
+### getKeyType() {#getkeytype}
 
 > **getKeyType**(`name`): `Promise`\<`VaultKeyType`\>
 
@@ -190,7 +190,7 @@ The key type.
 
 ***
 
-### renameKey()
+### renameKey() {#renamekey}
 
 > **renameKey**(`name`, `newName`): `Promise`\<`void`\>
 
@@ -222,7 +222,7 @@ Nothing.
 
 ***
 
-### removeKey()
+### removeKey() {#removekey}
 
 > **removeKey**(`name`): `Promise`\<`void`\>
 
@@ -248,7 +248,7 @@ Nothing.
 
 ***
 
-### sign()
+### sign() {#sign}
 
 > **sign**(`name`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -280,7 +280,7 @@ The signature for the data.
 
 ***
 
-### verify()
+### verify() {#verify}
 
 > **verify**(`name`, `data`, `signature`): `Promise`\<`boolean`\>
 
@@ -318,7 +318,7 @@ True if the verification is successful.
 
 ***
 
-### encrypt()
+### encrypt() {#encrypt}
 
 > **encrypt**(`name`, `encryptionType`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -356,7 +356,7 @@ The encrypted data in base64.
 
 ***
 
-### decrypt()
+### decrypt() {#decrypt}
 
 > **decrypt**(`name`, `encryptionType`, `encryptedData`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -394,7 +394,7 @@ The decrypted data in base64.
 
 ***
 
-### setSecret()
+### setSecret() {#setsecret}
 
 > **setSecret**\<`T`\>(`name`, `item`): `Promise`\<`void`\>
 
@@ -432,7 +432,7 @@ Nothing.
 
 ***
 
-### getSecret()
+### getSecret() {#getsecret}
 
 > **getSecret**\<`T`\>(`name`): `Promise`\<`T`\>
 
@@ -468,7 +468,7 @@ Error if the item is not found.
 
 ***
 
-### removeSecret()
+### removeSecret() {#removesecret}
 
 > **removeSecret**(`name`): `Promise`\<`void`\>
 

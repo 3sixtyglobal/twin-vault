@@ -14,7 +14,7 @@ Helpers for vault connectors.
 
 ## Properties
 
-### CLASS\_NAME
+### CLASS\_NAME {#class_name}
 
 > `readonly` `static` **CLASS\_NAME**: `string`
 
@@ -22,7 +22,7 @@ Runtime name for the class.
 
 ## Methods
 
-### jwtSigner()
+### jwtSigner() {#jwtsigner}
 
 > `static` **jwtSigner**(`vaultConnector`, `keyName`, `header`, `payload`): `Promise`\<`string`\>
 
@@ -62,7 +62,7 @@ The token.
 
 ***
 
-### jwtVerifier()
+### jwtVerifier() {#jwtverifier}
 
 > `static` **jwtVerifier**\<`T`, `U`\>(`vaultConnector`, `keyName`, `token`): `Promise`\<\{ `header`: `T`; `payload`: `U`; \}\>
 

@@ -8,7 +8,7 @@ Interface describing a vault securely storing data.
 
 ## Methods
 
-### createKey()
+### createKey() {#createkey}
 
 > **createKey**(`name`, `type`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -36,7 +36,7 @@ The public key for the key pair.
 
 ***
 
-### addKey()
+### addKey() {#addkey}
 
 > **addKey**(`name`, `type`, `privateKey`, `publicKey?`): `Promise`\<`void`\>
 
@@ -76,7 +76,7 @@ Nothing.
 
 ***
 
-### getKey()
+### getKey() {#getkey}
 
 > **getKey**(`name`): `Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
@@ -98,7 +98,7 @@ The key, publicKey can be undefined if key is symmetric.
 
 ***
 
-### getKeyType()
+### getKeyType() {#getkeytype}
 
 > **getKeyType**(`name`): `Promise`\<[`VaultKeyType`](../type-aliases/VaultKeyType.md)\>
 
@@ -126,7 +126,7 @@ NotFoundError if the key does not exist.
 
 ***
 
-### renameKey()
+### renameKey() {#renamekey}
 
 > **renameKey**(`name`, `newName`): `Promise`\<`void`\>
 
@@ -154,7 +154,7 @@ Nothing.
 
 ***
 
-### removeKey()
+### removeKey() {#removekey}
 
 > **removeKey**(`name`): `Promise`\<`void`\>
 
@@ -176,7 +176,7 @@ Nothing.
 
 ***
 
-### sign()
+### sign() {#sign}
 
 > **sign**(`name`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -204,7 +204,7 @@ The signature for the data.
 
 ***
 
-### verify()
+### verify() {#verify}
 
 > **verify**(`name`, `data`, `signature`): `Promise`\<`boolean`\>
 
@@ -238,7 +238,7 @@ True if the verification is successful.
 
 ***
 
-### encrypt()
+### encrypt() {#encrypt}
 
 > **encrypt**(`name`, `encryptionType`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -272,7 +272,7 @@ The encrypted data.
 
 ***
 
-### decrypt()
+### decrypt() {#decrypt}
 
 > **decrypt**(`name`, `encryptionType`, `encryptedData`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -306,7 +306,7 @@ The decrypted data.
 
 ***
 
-### setSecret()
+### setSecret() {#setsecret}
 
 > **setSecret**\<`T`\>(`name`, `data`): `Promise`\<`void`\>
 
@@ -340,7 +340,7 @@ Nothing.
 
 ***
 
-### getSecret()
+### getSecret() {#getsecret}
 
 > **getSecret**\<`T`\>(`name`): `Promise`\<`T`\>
 
@@ -372,7 +372,7 @@ Error if the secret is not found.
 
 ***
 
-### removeSecret()
+### removeSecret() {#removesecret}
 
 > **removeSecret**(`name`): `Promise`\<`void`\>
 
