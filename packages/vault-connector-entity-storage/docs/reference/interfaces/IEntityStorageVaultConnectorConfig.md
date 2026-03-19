@@ -6,6 +6,6 @@ Config for the entity storage vault connector constructor.
 
 ### prefix? {#prefix}
 
-> `optional` **prefix**: `string`
+> `optional` **prefix?**: `string`
 
 A prefix for the keys stored in the vault.

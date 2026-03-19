@@ -40,6 +40,6 @@ The private key in base64 format.
 
 ### publicKey? {#publickey}
 
-> `optional` **publicKey**: `string`
+> `optional` **publicKey?**: `string`
 
 The public key in base64 format.

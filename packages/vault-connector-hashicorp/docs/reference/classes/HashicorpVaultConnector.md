@@ -696,9 +696,9 @@ The name of the key.
 
 ##### keyPath
 
-The path of the key. Defaults to "signing-key".
+`"signing-key"` \| `"encryption-key"` \| `"public-key"`
 
-`"signing-key"` | `"encryption-key"` | `"public-key"`
+The path of the key. Defaults to "signing-key".
 
 ##### version?
 
