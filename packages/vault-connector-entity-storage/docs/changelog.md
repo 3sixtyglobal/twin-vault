@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.4](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.3-next.3...vault-connector-entity-storage-v0.0.3-next.4) (2026-04-06)
+
+
+### Bug Fixes
+
+* reverse renameKey operation order to prevent key loss on partial failure ([#46](https://github.com/twinfoundation/vault/issues/46)) ([3bab7ac](https://github.com/twinfoundation/vault/commit/3bab7ac6451ce1acacbe927076bbf470174f61b6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.3-next.3 to 0.0.3-next.4
+
 ## [0.0.3-next.3](https://github.com/twinfoundation/vault/compare/vault-connector-entity-storage-v0.0.3-next.2...vault-connector-entity-storage-v0.0.3-next.3) (2026-02-18)
 
 

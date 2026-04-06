@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.4](https://github.com/twinfoundation/vault/compare/vault-connector-hashicorp-v0.0.3-next.3...vault-connector-hashicorp-v0.0.3-next.4) (2026-04-06)
+
+
+### Miscellaneous Chores
+
+* **vault-connector-hashicorp:** Synchronize repo versions
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.3-next.3 to 0.0.3-next.4
+
 ## [0.0.3-next.3](https://github.com/twinfoundation/vault/compare/vault-connector-hashicorp-v0.0.3-next.2...vault-connector-hashicorp-v0.0.3-next.3) (2026-02-18)
 
 
