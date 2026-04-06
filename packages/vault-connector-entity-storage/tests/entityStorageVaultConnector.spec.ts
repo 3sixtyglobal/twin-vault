@@ -883,6 +883,42 @@ describe("EntityStorageVaultConnector", () => {
 		expect(store?.[0]).toBeUndefined();
 	});
 
+	test("renameKey preserves original key if set fails", async () => {
+		// Verify: renameKey does set() then remove() (create-then-delete).
+		// If set() fails, the original key is preserved — no data loss.
+		const vaultConnector = new EntityStorageVaultConnector();
+
+		await vaultConnector.createKey(TEST_KEY_NAME, VaultKeyType.Ed25519);
+
+		// Verify the key exists before rename
+		const keyBefore = await vaultConnector.getKey(TEST_KEY_NAME);
+		expect(keyBefore).toBeDefined();
+		expect(keyBefore.type).toEqual(VaultKeyType.Ed25519);
+
+		// Patch set() to fail — simulates a storage failure during rename
+		const originalSet = vaultKeyEntityStorageConnector.set.bind(vaultKeyEntityStorageConnector);
+		vaultKeyEntityStorageConnector.set = async (_entity: VaultKey) => {
+			throw new Error("Simulated storage failure during set");
+		};
+
+		// renameKey should throw because set() fails
+		await expect(vaultConnector.renameKey(TEST_KEY_NAME, "new-key")).rejects.toThrow(
+			"Simulated storage failure during set"
+		);
+
+		// Restore original set so we can query the store
+		vaultKeyEntityStorageConnector.set = originalSet;
+
+		const store = vaultKeyEntityStorageConnector.getStore();
+		const oldKey = store.find(k => k.id === TEST_KEY_NAME);
+		const newKey = store.find(k => k.id === "new-key");
+
+		// Original key is preserved — no data loss
+		expect(oldKey).toBeDefined();
+		expect(newKey).toBeUndefined();
+		expect(store.length).toEqual(1);
+	});
+
 	test("can perform key operations with a prefix", async () => {
 		const vaultConnector = new EntityStorageVaultConnector({ config: { prefix: "foo" } });
 

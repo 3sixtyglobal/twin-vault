@@ -250,13 +250,24 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
-		await this._vaultKeyEntityStorageConnector.remove(fullKeyName);
-
 		const newFullKeyName = this.createKeyName(newName);
 
-		vaultKey.id = newFullKeyName;
+		if (fullKeyName !== newFullKeyName) {
+			const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(newFullKeyName);
+			if (!Is.empty(existingVaultKey)) {
+				throw new AlreadyExistsError(
+					EntityStorageVaultConnector.CLASS_NAME,
+					"keyAlreadyExists",
+					newName
+				);
+			}
 
-		await this._vaultKeyEntityStorageConnector.set(vaultKey);
+			vaultKey.id = newFullKeyName;
+
+			await this._vaultKeyEntityStorageConnector.set(vaultKey);
+
+			await this._vaultKeyEntityStorageConnector.remove(fullKeyName);
+		}
 	}
 
 	/**
