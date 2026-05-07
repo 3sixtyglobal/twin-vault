@@ -1,10 +1,11 @@
 # Vault Connector Hashicorp Examples
 
-These examples walk through connecting to a Vault instance, managing keys, signing and encryption workflows, and handling secret versions.
+These examples show how to connect to a Vault instance, inspect connector health, manage keys, sign and encrypt payloads, and work with secret versions.
 
 ## HashicorpVaultConnector
 
 ```typescript
+import { HealthStatus } from '@twin.org/core';
 import { HashicorpVaultConnector } from '@twin.org/vault-connector-hashicorp';
 
 const connector = new HashicorpVaultConnector({
@@ -19,6 +20,9 @@ const connector = new HashicorpVaultConnector({
 
 const ready = await connector.bootstrap();
 console.log(ready); // true
+
+const health = await connector.health();
+console.log(health[0].status === HealthStatus.Ok); // true
 
 console.log(connector.className()); // HashicorpVaultConnector
 ```
