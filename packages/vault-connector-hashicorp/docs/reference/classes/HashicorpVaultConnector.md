@@ -62,6 +62,24 @@ The class name of the component.
 
 ***
 
+### health() {#health}
+
+> **health**(): `Promise`\<`IHealth`[]\>
+
+Returns the health status of the component.
+
+#### Returns
+
+`Promise`\<`IHealth`[]\>
+
+The health status of the component, can return multiple entries for elements within the component.
+
+#### Implementation of
+
+`IVaultConnector.health`
+
+***
+
 ### bootstrap() {#bootstrap}
 
 > **bootstrap**(`nodeLoggingComponentType?`): `Promise`\<`boolean`\>
