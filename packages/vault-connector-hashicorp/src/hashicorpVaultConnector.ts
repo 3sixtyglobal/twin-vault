@@ -156,7 +156,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				{
 					source: HashicorpVaultConnector.CLASS_NAME,
 					status: HealthStatus.Ok,
-					description: "health.hashicorpVaultConnector.healthDescription"
+					description: "healthDescription"
 				}
 			];
 		} catch {
@@ -164,8 +164,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				{
 					source: HashicorpVaultConnector.CLASS_NAME,
 					status: HealthStatus.Error,
-					description: "health.hashicorpVaultConnector.healthDescription",
-					message: "health.hashicorpVaultConnector.vaultHealthCheckFailed"
+					description: "healthDescription",
+					message: "vaultHealthCheckFailed"
 				}
 			];
 		}

@@ -54,7 +54,7 @@ describe("HashicorpVaultConnector", () => {
 		expect(health.length).toBeGreaterThan(0);
 		expect(health[0].source).toEqual("HashicorpVaultConnector");
 		expect(health[0].status).toEqual(HealthStatus.Ok);
-		expect(health[0].description).toEqual("health.hashicorpVaultConnector.healthDescription");
+		expect(health[0].description).toEqual("healthDescription");
 	});
 
 	test("can fail to get health status with invalid config", async () => {
@@ -73,8 +73,8 @@ describe("HashicorpVaultConnector", () => {
 		expect(health.length).toBeGreaterThan(0);
 		expect(health[0].source).toEqual("HashicorpVaultConnector");
 		expect(health[0].status).toEqual(HealthStatus.Error);
-		expect(health[0].description).toEqual("health.hashicorpVaultConnector.healthDescription");
-		expect(health[0].message).toEqual("health.hashicorpVaultConnector.vaultHealthCheckFailed");
+		expect(health[0].description).toEqual("healthDescription");
+		expect(health[0].message).toEqual("vaultHealthCheckFailed");
 	});
 
 	test("can fail to store a secret with no secret name", async () => {
