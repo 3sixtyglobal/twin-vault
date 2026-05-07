@@ -6,8 +6,8 @@
 	},
 	"health": {
 		"hashicorpVaultConnector": {
-			"healthDescription": "Connectivity and availability of the Hashicorp Vault server",
-			"vaultHealthCheckFailed": "Failed to check Vault health status"
+			"healthDescription": "Connectivity and availability of the Hashicorp Vault server \"{endpoint}\"",
+			"vaultHealthCheckFailed": "Failed to check Vault health status \"{endpoint}\""
 		}
 	},
 	"error": {

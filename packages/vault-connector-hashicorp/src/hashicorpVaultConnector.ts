@@ -143,10 +143,11 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @returns The health status of the component, can return multiple entries for elements within the component.
 	 */
 	public async health(): Promise<IHealth[]> {
+		const endpoint = `${this._baseUrl}/sys/health`;
 		try {
 			await FetchHelper.fetch(
 				HashicorpVaultConnector.CLASS_NAME,
-				`${this._baseUrl}/sys/health`,
+				endpoint,
 				HttpMethod.GET,
 				undefined,
 				{ headers: this._headers }
@@ -156,7 +157,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				{
 					source: HashicorpVaultConnector.CLASS_NAME,
 					status: HealthStatus.Ok,
-					description: "healthDescription"
+					description: "healthDescription",
+					data: { endpoint }
 				}
 			];
 		} catch {
@@ -165,7 +167,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 					source: HashicorpVaultConnector.CLASS_NAME,
 					status: HealthStatus.Error,
 					description: "healthDescription",
-					message: "vaultHealthCheckFailed"
+					message: "vaultHealthCheckFailed",
+					data: { endpoint }
 				}
 			];
 		}
