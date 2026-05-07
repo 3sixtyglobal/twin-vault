@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.6](https://github.com/iotaledger/twin-vault/compare/vault-connector-hashicorp-v0.0.3-next.5...vault-connector-hashicorp-v0.0.3-next.6) (2026-05-07)
+
+
+### Features
+
+* additional information in health ([7bb50e5](https://github.com/iotaledger/twin-vault/commit/7bb50e521784cb569bc24a6c40bf0b3e1ae66106))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.3-next.5 to 0.0.3-next.6
+
 ## [0.0.3-next.5](https://github.com/iotaledger/twin-vault/compare/vault-connector-hashicorp-v0.0.3-next.4...vault-connector-hashicorp-v0.0.3-next.5) (2026-05-07)
 
 
