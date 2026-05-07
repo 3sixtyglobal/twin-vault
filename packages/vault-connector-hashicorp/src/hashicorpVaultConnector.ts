@@ -7,10 +7,12 @@ import {
 	Converter,
 	GeneralError,
 	Guards,
+	HealthStatus,
 	Is,
 	NotFoundError,
 	RandomHelper,
-	StringHelper
+	StringHelper,
+	type IHealth
 } from "@twin.org/core";
 import { Ed25519 } from "@twin.org/crypto";
 import type { ILoggingComponent } from "@twin.org/logging-models";
@@ -134,6 +136,39 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 */
 	public className(): string {
 		return HashicorpVaultConnector.CLASS_NAME;
+	}
+
+	/**
+	 * Returns the health status of the component.
+	 * @returns The health status of the component, can return multiple entries for elements within the component.
+	 */
+	public async health(): Promise<IHealth[]> {
+		try {
+			await FetchHelper.fetch(
+				HashicorpVaultConnector.CLASS_NAME,
+				`${this._baseUrl}/sys/health`,
+				HttpMethod.GET,
+				undefined,
+				{ headers: this._headers }
+			);
+
+			return [
+				{
+					source: HashicorpVaultConnector.CLASS_NAME,
+					status: HealthStatus.Ok,
+					description: "health.hashicorpVaultConnector.healthDescription"
+				}
+			];
+		} catch {
+			return [
+				{
+					source: HashicorpVaultConnector.CLASS_NAME,
+					status: HealthStatus.Error,
+					description: "health.hashicorpVaultConnector.healthDescription",
+					message: "health.hashicorpVaultConnector.vaultHealthCheckFailed"
+				}
+			];
+		}
 	}
 
 	/**

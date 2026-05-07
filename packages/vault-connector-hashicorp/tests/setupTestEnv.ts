@@ -27,6 +27,31 @@ export const TEST_VAULT_CONFIG: IHashicorpVaultConnectorConfig = {
 	apiVersion: process.env.VAULT_API_VERSION ?? "v1"
 };
 
+const apiVersion = TEST_VAULT_CONFIG.apiVersion ?? "v1";
+const baseUrl = `${TEST_VAULT_CONFIG.endpoint}/${apiVersion}`;
+const vaultHeaders = {
+	"X-Vault-Token": TEST_VAULT_CONFIG.token,
+	"Content-Type": "application/json"
+};
+
+async function enableTransitBackend(): Promise<void> {
+	const transitMountPath = TEST_VAULT_CONFIG.transitMountPath ?? "transit";
+	try {
+		const response = await fetch(`${baseUrl}/sys/mounts/${transitMountPath}`, {
+			method: "POST",
+			headers: vaultHeaders,
+			body: JSON.stringify({ type: "transit" })
+		});
+		if (!response.ok && response.status !== 400) {
+			console.warn(`Failed to enable transit backend: ${response.status}`);
+		}
+	} catch (err) {
+		console.warn("Failed to enable transit backend:", err);
+	}
+}
+
+await enableTransitBackend();
+
 /**
  * Cleans up the secrets from the vault.
  * @param secretNames - The names of the secrets to clean up.

@@ -4,6 +4,12 @@
 			"hashicorpVaultConnected": "Connected to Hashicorp Vault"
 		}
 	},
+	"health": {
+		"hashicorpVaultConnector": {
+			"healthDescription": "Connectivity and availability of the Hashicorp Vault server",
+			"vaultHealthCheckFailed": "Failed to check Vault health status"
+		}
+	},
 	"error": {
 		"hashicorpVaultConnector": {
 			"setSecretFailed": "Failed to set secret \"{name}\"",

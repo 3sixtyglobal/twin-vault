@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { AlreadyExistsError, Converter, GeneralError, RandomHelper } from "@twin.org/core";
+import { AlreadyExistsError, Converter, GeneralError, HealthStatus, RandomHelper } from "@twin.org/core";
 import { ChaCha20Poly1305, Ed25519 } from "@twin.org/crypto";
 import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
 import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv.js";
@@ -38,6 +38,37 @@ describe("HashicorpVaultConnector", () => {
 		});
 
 		expect(vaultConnectorHealth).toBeDefined();
+	});
+
+	test("can get health status when vault is available", async () => {
+		const health = await vaultConnector.health();
+
+		expect(health).toBeDefined();
+		expect(Array.isArray(health)).toBe(true);
+		expect(health.length).toBeGreaterThan(0);
+		expect(health[0].source).toEqual("HashicorpVaultConnector");
+		expect(health[0].status).toEqual(HealthStatus.Ok);
+		expect(health[0].description).toEqual("health.hashicorpVaultConnector.healthDescription");
+	});
+
+	test("can fail to get health status with invalid config", async () => {
+		const invalidConnector = new HashicorpVaultConnector({
+			config: {
+				endpoint: "http://invalid-vault:8200",
+				token: "invalid-token",
+				apiVersion: "v1"
+			}
+		});
+
+		const health = await invalidConnector.health();
+
+		expect(health).toBeDefined();
+		expect(Array.isArray(health)).toBe(true);
+		expect(health.length).toBeGreaterThan(0);
+		expect(health[0].source).toEqual("HashicorpVaultConnector");
+		expect(health[0].status).toEqual(HealthStatus.Error);
+		expect(health[0].description).toEqual("health.hashicorpVaultConnector.healthDescription");
+		expect(health[0].message).toEqual("health.hashicorpVaultConnector.vaultHealthCheckFailed");
 	});
 
 	test("can fail to store a secret with no secret name", async () => {
