@@ -29,15 +29,5 @@ runs:
           --cap-add=IPC_LOCK \
           -p 8200:8200 \
           -e VAULT_DEV_ROOT_TOKEN_ID=root \
-          hashicorp/vault:1.18.0
+          hashicorp/vault:1.21.4
 
-        # Wait for Vault to become available
-        echo "Waiting for Vault to start..."
-        sleep 5
-
-        # Enable Transit Secrets Engine via API
-        curl \
-          --header "X-Vault-Token: root" \
-          --request POST \
-          --data '{"type":"transit"}' \
-          http://localhost:8200/v1/sys/mounts/transit

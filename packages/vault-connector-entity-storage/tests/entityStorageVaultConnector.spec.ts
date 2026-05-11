@@ -117,7 +117,7 @@ describe("EntityStorageVaultConnector", () => {
 				undefined as unknown as string,
 				undefined as unknown as VaultKeyType,
 				undefined as unknown as Uint8Array,
-				undefined as unknown as Uint8Array
+				undefined
 			)
 		).rejects.toMatchObject({
 			name: "GuardError",
@@ -137,7 +137,7 @@ describe("EntityStorageVaultConnector", () => {
 				TEST_KEY_NAME,
 				undefined as unknown as VaultKeyType,
 				undefined as unknown as Uint8Array,
-				undefined as unknown as Uint8Array
+				undefined
 			)
 		).rejects.toMatchObject({
 			name: "GuardError",
@@ -157,7 +157,7 @@ describe("EntityStorageVaultConnector", () => {
 				TEST_KEY_NAME,
 				VaultKeyType.Ed25519,
 				undefined as unknown as Uint8Array,
-				undefined as unknown as Uint8Array
+				undefined
 			)
 		).rejects.toMatchObject({
 			name: "GuardError",
@@ -173,12 +173,7 @@ describe("EntityStorageVaultConnector", () => {
 		const vaultConnector = new EntityStorageVaultConnector();
 
 		await expect(
-			vaultConnector.addKey(
-				TEST_KEY_NAME,
-				VaultKeyType.Ed25519,
-				new Uint8Array(),
-				undefined as unknown as Uint8Array
-			)
+			vaultConnector.addKey(TEST_KEY_NAME, VaultKeyType.Ed25519, new Uint8Array(), undefined)
 		).rejects.toMatchObject({
 			name: "GuardError",
 			message: "guard.uint8Array",
