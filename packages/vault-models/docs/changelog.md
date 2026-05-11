@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3-next.7](https://github.com/iotaledger/twin-vault/compare/vault-models-v0.0.3-next.6...vault-models-v0.0.3-next.7) (2026-05-11)
+
+
+### Features
+
+* typescript 6 update ([bbf552c](https://github.com/iotaledger/twin-vault/commit/bbf552cbbb6d6231d718f0c0fb55dd6a25bb41b7))
+
 ## [0.0.3-next.6](https://github.com/iotaledger/twin-vault/compare/vault-models-v0.0.3-next.5...vault-models-v0.0.3-next.6) (2026-05-07)
 
 

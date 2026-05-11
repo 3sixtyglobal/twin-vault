@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.7](https://github.com/iotaledger/twin-vault/compare/vault-connector-hashicorp-v0.0.3-next.6...vault-connector-hashicorp-v0.0.3-next.7) (2026-05-11)
+
+
+### Features
+
+* typescript 6 update ([bbf552c](https://github.com/iotaledger/twin-vault/commit/bbf552cbbb6d6231d718f0c0fb55dd6a25bb41b7))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.3-next.6 to 0.0.3-next.7
+
 ## [0.0.3-next.6](https://github.com/iotaledger/twin-vault/compare/vault-connector-hashicorp-v0.0.3-next.5...vault-connector-hashicorp-v0.0.3-next.6) (2026-05-07)
 
 
