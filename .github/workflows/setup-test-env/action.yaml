@@ -30,4 +30,3 @@ runs:
           -p 8200:8200 \
           -e VAULT_DEV_ROOT_TOKEN_ID=root \
           hashicorp/vault:1.21.4
-
