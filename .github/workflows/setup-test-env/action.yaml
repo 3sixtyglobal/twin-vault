@@ -27,6 +27,6 @@ runs:
         docker run -d \
           --name vault \
           --cap-add=IPC_LOCK \
-          -p 8200:8200 \
+          -p 18200:8200 \
           -e VAULT_DEV_ROOT_TOKEN_ID=root \
           hashicorp/vault:1.21.4
