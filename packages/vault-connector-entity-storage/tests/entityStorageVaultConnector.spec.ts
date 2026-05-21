@@ -892,7 +892,7 @@ describe("EntityStorageVaultConnector", () => {
 
 		// Patch set() to fail — simulates a storage failure during rename
 		const originalSet = vaultKeyEntityStorageConnector.set.bind(vaultKeyEntityStorageConnector);
-		vaultKeyEntityStorageConnector.set = async (_entity: VaultKey) => {
+		vaultKeyEntityStorageConnector.set = async (entity: VaultKey) => {
 			throw new Error("Simulated storage failure during set");
 		};
 
