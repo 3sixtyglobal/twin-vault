@@ -4,7 +4,7 @@
 	"description": "Vault components for consistent key management, encryption, and secret workflows",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/iotaledger/vault.git"
+		"url": "git+https://github.com/iotaledger/twin-vault.git"
 	},
 	"author": "martyn.janes@iota.org",
 	"license": "Apache-2.0",
@@ -60,7 +60,7 @@
 	],
 	"type": "module",
 	"bugs": {
-		"url": "git+https://github.com/iotaledger/vault/issues"
+		"url": "git+https://github.com/iotaledger/twin-vault/issues"
 	},
 	"homepage": "https://twindev.org"
 }
