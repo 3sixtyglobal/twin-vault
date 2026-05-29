@@ -4,7 +4,7 @@
 	"description": "Entity storage backed connector for persisted vault key and secret workflows",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/iotaledger/vault.git",
+		"url": "git+https://github.com/iotaledger/twin-vault.git",
 		"directory": "packages/vault-connector-entity-storage"
 	},
 	"author": "martyn.janes@iota.org",
@@ -86,7 +86,7 @@
 		"integration"
 	],
 	"bugs": {
-		"url": "git+https://github.com/iotaledger/vault/issues"
+		"url": "git+https://github.com/iotaledger/twin-vault/issues"
 	},
 	"homepage": "https://twindev.org"
 }

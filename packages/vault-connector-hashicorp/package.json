@@ -4,7 +4,7 @@
 	"description": "HashiCorp Vault connector for transit cryptography and KV secret workflows",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/iotaledger/vault.git",
+		"url": "git+https://github.com/iotaledger/twin-vault.git",
 		"directory": "packages/vault-connector-hashicorp"
 	},
 	"contributors": [
@@ -88,7 +88,7 @@
 		"integration"
 	],
 	"bugs": {
-		"url": "git+https://github.com/iotaledger/vault/issues"
+		"url": "git+https://github.com/iotaledger/twin-vault/issues"
 	},
 	"homepage": "https://twindev.org"
 }
