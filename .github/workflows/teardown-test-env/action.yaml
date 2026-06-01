@@ -11,8 +11,3 @@ runs:
         docker rm $(docker ps -aq) || true
         docker rmi -f $(docker images -aq) || true
         docker system prune -a --volumes -f || true
-
-    - name: Remove Test Environment Variables File
-      shell: bash
-      run: |
-        rm -f /tmp/test_env_vars.txt
