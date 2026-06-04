@@ -1322,6 +1322,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * Check if the key type is asymmetric.
 	 * @param type The key type.
 	 * @returns True if the key type is asymmetric.
+	 * @internal
 	 */
 	private isAsymmetricKeyType(type: VaultKeyType): boolean {
 		switch (type) {
