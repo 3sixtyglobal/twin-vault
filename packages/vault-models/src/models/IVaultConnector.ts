@@ -22,7 +22,7 @@ export interface IVaultConnector extends IComponent {
 	 * @param type The type of key to add.
 	 * @param privateKey The private key.
 	 * @param publicKey The public key, can be undefined if the key type is symmetric.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been stored.
 	 */
 	addKey(
 		name: string,
@@ -55,8 +55,6 @@ export interface IVaultConnector extends IComponent {
 
 	/**
 	 * Get the type of a key from the vault without retrieving the key material.
-	 * This method supports the principle of least privilege by only exposing
-	 * metadata when key material is not needed.
 	 * @param name The name of the key.
 	 * @returns The key type.
 	 * @throws NotFoundError if the key does not exist.
@@ -67,14 +65,14 @@ export interface IVaultConnector extends IComponent {
 	 * Rename a key in the vault.
 	 * @param name The name of the key to rename.
 	 * @param newName The new name of the key.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been renamed.
 	 */
 	renameKey(name: string, newName: string): Promise<void>;
 
 	/**
 	 * Remove a key from the vault.
 	 * @param name The name of the key to remove from the vault.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been removed.
 	 */
 	removeKey(name: string): Promise<void>;
 
@@ -121,7 +119,7 @@ export interface IVaultConnector extends IComponent {
 	 * Store a secret in the vault.
 	 * @param name The name of the secret in the vault to set.
 	 * @param data The secret to add to the vault.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been stored.
 	 */
 	setSecret<T>(name: string, data: T): Promise<void>;
 
@@ -136,7 +134,7 @@ export interface IVaultConnector extends IComponent {
 	/**
 	 * Remove a secret from the vault.
 	 * @param name The name of the secret in the vault to remove.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been removed.
 	 * @throws Error if the secret is not found.
 	 */
 	removeSecret(name: string): Promise<void>;

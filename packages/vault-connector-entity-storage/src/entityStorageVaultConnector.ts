@@ -135,7 +135,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @param type The type of key to add.
 	 * @param privateKey The private key.
 	 * @param publicKey The public key, can be undefined if the key type is symmetric.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been stored.
 	 */
 	public async addKey(
 		name: string,
@@ -219,6 +219,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * Get the type of a key from the vault without retrieving the key material.
 	 * @param name The name of the key.
 	 * @returns The key type.
+	 * @throws NotFoundError if the key does not exist.
 	 */
 	public async getKeyType(name: string): Promise<VaultKeyType> {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
@@ -237,7 +238,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * Rename a key in the vault.
 	 * @param name The name of the key to rename.
 	 * @param newName The new name of the key.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been renamed.
 	 */
 	public async renameKey(name: string, newName: string): Promise<void> {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
@@ -272,8 +273,8 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 
 	/**
 	 * Remove a key from the vault.
-	 * @param name The name of the key to create in the value.
-	 * @returns Nothing.
+	 * @param name The name of the key to remove from the vault.
+	 * @returns A promise that resolves when the key has been removed.
 	 */
 	public async removeKey(name: string): Promise<void> {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
@@ -323,8 +324,8 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	/**
 	 * Verify the signature of the data using a key in the vault.
 	 * @param name The name of the key to use for verification.
-	 * @param data The data that was signed in base64.
-	 * @param signature The signature to verify in base64.
+	 * @param data The data that was signed.
+	 * @param signature The signature to verify.
 	 * @returns True if the verification is successful.
 	 */
 	public async verify(name: string, data: Uint8Array, signature: Uint8Array): Promise<boolean> {
@@ -356,8 +357,8 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * Encrypt the data using a key in the vault.
 	 * @param name The name of the key to use for encryption.
 	 * @param encryptionType The type of encryption to use.
-	 * @param data The data to encrypt in base64.
-	 * @returns The encrypted data in base64.
+	 * @param data The data to encrypt.
+	 * @returns The encrypted data.
 	 */
 	public async encrypt(
 		name: string,
@@ -408,8 +409,8 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * Decrypt the data using a key in the vault.
 	 * @param name The name of the key to use for decryption.
 	 * @param encryptionType The type of encryption to use.
-	 * @param encryptedData The data to decrypt in base64.
-	 * @returns The decrypted data in base64.
+	 * @param encryptedData The data to decrypt.
+	 * @returns The decrypted data.
 	 */
 	public async decrypt(
 		name: string,
@@ -456,7 +457,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * Store a secret in the vault.
 	 * @param name The name of the item in the vault to set.
 	 * @param item The item to add to the vault.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been stored.
 	 */
 	public async setSecret<T>(name: string, item: T): Promise<void> {
 		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
@@ -495,7 +496,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	/**
 	 * Remove a secret from the vault.
 	 * @param name The name of the item in the vault to remove.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been removed.
 	 * @throws Error if the item is not found.
 	 */
 	public async removeSecret(name: string): Promise<void> {

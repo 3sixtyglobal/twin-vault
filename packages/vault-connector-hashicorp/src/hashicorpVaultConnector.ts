@@ -43,7 +43,7 @@ import type { IVerifyDataRequest } from "./models/IVerifyDataRequest.js";
 import type { IVerifyDataResponse } from "./models/IVerifyDataResponse.js";
 
 /**
- * Class for performing vault operations in entity storage.
+ * Class for performing vault operations using HashiCorp Vault.
  */
 export class HashicorpVaultConnector implements IVaultConnector {
 	/**
@@ -63,7 +63,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	private static readonly _DATA_PREFIX: string = "vault:v1:";
 
 	/**
-	 * The entity storage for the vault keys.
+	 * The configuration for the vault connector.
 	 * @internal
 	 */
 	private readonly _config: IHashicorpVaultConnectorConfig;
@@ -223,7 +223,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * Store a secret in the vault.
 	 * @param name The name of the item in the vault to set.
 	 * @param data The item to add to the vault.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been stored.
 	 */
 	public async setSecret<T>(name: string, data: T): Promise<void> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
@@ -306,7 +306,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	/**
 	 * Remove a secret from the vault.
 	 * @param name The name of the item in the vault to remove.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been removed.
 	 * @throws Error if the item is not found.
 	 */
 	public async removeSecret(name: string): Promise<void> {
@@ -423,7 +423,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @param type The type of key to add.
 	 * @param privateKey The private key.
 	 * @param publicKey The public key, can be undefined if the key type is symmetric.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been stored.
 	 */
 	public async addKey(
 		name: string,
@@ -582,6 +582,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * Get the type of a key from the vault without retrieving the key material.
 	 * @param name The name of the key.
 	 * @returns The key type.
+	 * @throws NotFoundError if the key does not exist.
 	 */
 	public async getKeyType(name: string): Promise<VaultKeyType> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
@@ -606,7 +607,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * Rename a key in the vault.
 	 * @param name The name of the key to rename.
 	 * @param newName The new name of the key.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been renamed.
 	 */
 	public async renameKey(name: string, newName: string): Promise<void> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
@@ -643,7 +644,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	/**
 	 * Remove a key from the vault.
 	 * @param name The name of the key to remove.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been removed.
 	 */
 	public async removeKey(name: string): Promise<void> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
@@ -978,7 +979,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @param name The name of the key to update.
 	 * @param deletionAllowed Whether the key can be deleted.
 	 * @param exportable Whether the key can be exported.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key configuration has been updated.
 	 */
 	public async updateKeyConfig(
 		name: string,
@@ -1016,7 +1017,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	/**
 	 * Backup a key from the vault.
 	 * @param name The name of the key to backup.
-	 * @returns The private key as a Uint8Array.
+	 * @returns The Base64-encoded backup payload.
 	 * @throws Error if the key cannot be exported or found.
 	 */
 	public async backupKey(name: string): Promise<string> {
@@ -1050,8 +1051,8 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	/**
 	 * Restore a key to the vault.
 	 * @param name The name of the key to restore.
-	 * @param backup The backup of the key.
-	 * @returns Nothing.
+	 * @param backup The Base64-encoded backup payload.
+	 * @returns A promise that resolves when the key has been restored.
 	 * @throws Error if the key cannot be restored.
 	 */
 	public async restoreKey(name: string, backup: string): Promise<void> {
@@ -1079,9 +1080,9 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	/**
 	 * Import a key to the vault.
 	 * @param name The name of the key to import.
-	 * @param type The type of key to import, e.g. "ed25519", etc.
+	 * @param type The type of key to import, e.g. "ed25519".
 	 * @param privateKeyPem The PEM bundle of the key to import.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been imported.
 	 * @throws Error if the key cannot be imported.
 	 */
 	public async importKey(name: string, type: string, privateKeyPem: string): Promise<void> {
@@ -1486,7 +1487,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	}
 
 	/**
-	 * Get the  path for encrypting data with a Transit key.
+	 * Get the path for encrypting data with a Transit key.
 	 * @param name The name of the key.
 	 * @returns The path for encryption.
 	 * @internal
@@ -1496,7 +1497,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	}
 
 	/**
-	 * Get the  path for decrypting data with a Transit key.
+	 * Get the path for decrypting data with a Transit key.
 	 * @param name The name of the key.
 	 * @returns The path for decryption.
 	 * @internal
