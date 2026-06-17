@@ -12,12 +12,6 @@ The names of the vault key types.
 
 Ed25519. (asymmetric)
 
-### Secp256k1 {#secp256k1}
-
-> `readonly` **Secp256k1**: `1` = `1`
-
-Secp256k1. (asymmetric)
-
 ### ChaCha20Poly1305 {#chacha20poly1305}
 
 > `readonly` **ChaCha20Poly1305**: `2` = `2`

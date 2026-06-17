@@ -24,7 +24,7 @@ The authentication token for the Hashicorp Vault.
 
 > `optional` **kvMountPath?**: `string`
 
-The mount path for the KV Secrets Engine (e.g., "secret)
+The mount path for the KV Secrets Engine (e.g., "secret").
 
 ***
 

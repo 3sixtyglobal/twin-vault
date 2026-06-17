@@ -72,13 +72,13 @@ The public key, can be undefined if the key type is symmetric.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been stored.
 
 ***
 
 ### getKey() {#getkey}
 
-> **getKey**(`name`): `Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+> **getKey**(`name`, `components?`): `Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
 Get a key from the vault.
 
@@ -90,11 +90,43 @@ Get a key from the vault.
 
 The name of the key to get from the vault.
 
+##### components?
+
+`"public"` \| `"private"` \| `"both"`
+
+Which key components to return, defaults to "both".
+
 #### Returns
 
-`Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+`Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
-The key, publicKey can be undefined if key is symmetric.
+The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+
+#### Throws
+
+GeneralError if "private" is requested for a symmetric key.
+
+***
+
+### keyExists() {#keyexists}
+
+> **keyExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a key exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the key exists, false otherwise.
 
 ***
 
@@ -103,8 +135,6 @@ The key, publicKey can be undefined if key is symmetric.
 > **getKeyType**(`name`): `Promise`\<[`VaultKeyType`](../type-aliases/VaultKeyType.md)\>
 
 Get the type of a key from the vault without retrieving the key material.
-This method supports the principle of least privilege by only exposing
-metadata when key material is not needed.
 
 #### Parameters
 
@@ -150,7 +180,7 @@ The new name of the key.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been renamed.
 
 ***
 
@@ -172,7 +202,7 @@ The name of the key to remove from the vault.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been removed.
 
 ***
 
@@ -336,7 +366,29 @@ The secret to add to the vault.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been stored.
+
+***
+
+### secretExists() {#secretexists}
+
+> **secretExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a secret exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the secret to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the secret exists, false otherwise.
 
 ***
 
@@ -390,7 +442,7 @@ The name of the secret in the vault to remove.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been removed.
 
 #### Throws
 

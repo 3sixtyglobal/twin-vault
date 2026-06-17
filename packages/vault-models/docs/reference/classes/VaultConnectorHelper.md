@@ -103,3 +103,25 @@ The token to verify.
 `Promise`\<\{ `header`: `T`; `payload`: `U`; \}\>
 
 The header and payload if verification successful.
+
+***
+
+### buildKeyName() {#buildkeyname}
+
+> `static` **buildKeyName**(...`keyParts`): `string`
+
+Build a key name from parts.
+
+#### Parameters
+
+##### keyParts
+
+...`string`[]
+
+The parts of the key.
+
+#### Returns
+
+`string`
+
+The constructed key name.

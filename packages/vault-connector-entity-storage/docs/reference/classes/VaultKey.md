@@ -26,7 +26,7 @@ The id.
 
 > **type**: `VaultKeyType`
 
-The type of the key e.g. Ed25519, Secp256k1.
+The type of the key e.g. Ed25519.
 
 ***
 

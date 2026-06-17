@@ -1,6 +1,6 @@
 # Class: HashicorpVaultConnector
 
-Class for performing vault operations in entity storage.
+Class for performing vault operations using HashiCorp Vault.
 
 ## Implements
 
@@ -136,11 +136,37 @@ The item to add to the vault.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been stored.
 
 #### Implementation of
 
 `IVaultConnector.setSecret`
+
+***
+
+### secretExists() {#secretexists}
+
+> **secretExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a secret exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the secret to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the secret exists, false otherwise.
+
+#### Implementation of
+
+`IVaultConnector.secretExists`
 
 ***
 
@@ -198,7 +224,7 @@ The name of the item in the vault to remove.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been removed.
 
 #### Throws
 
@@ -278,7 +304,7 @@ The public key, can be undefined if the key type is symmetric.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been stored.
 
 #### Implementation of
 
@@ -288,7 +314,7 @@ Nothing.
 
 ### getKey() {#getkey}
 
-> **getKey**(`name`): `Promise`\<\{ `type`: `VaultKeyType`; `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+> **getKey**(`name`, `components?`): `Promise`\<\{ `type`: `VaultKeyType`; `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
 Get a key from the vault.
 
@@ -300,15 +326,51 @@ Get a key from the vault.
 
 The name of the key to get.
 
+##### components?
+
+`"public"` \| `"private"` \| `"both"`
+
+Which key components to return, defaults to "both".
+
 #### Returns
 
-`Promise`\<\{ `type`: `VaultKeyType`; `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+`Promise`\<\{ `type`: `VaultKeyType`; `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
-The key, publicKey can be undefined if key is symmetric.
+The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+
+#### Throws
+
+GeneralError if "private" is requested for a symmetric key.
 
 #### Implementation of
 
 `IVaultConnector.getKey`
+
+***
+
+### keyExists() {#keyexists}
+
+> **keyExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a key exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the key exists, false otherwise.
+
+#### Implementation of
+
+`IVaultConnector.keyExists`
 
 ***
 
@@ -331,6 +393,10 @@ The name of the key.
 `Promise`\<`VaultKeyType`\>
 
 The key type.
+
+#### Throws
+
+NotFoundError if the key does not exist.
 
 #### Implementation of
 
@@ -362,7 +428,7 @@ The new name of the key.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been renamed.
 
 #### Implementation of
 
@@ -388,7 +454,7 @@ The name of the key to remove.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been removed.
 
 #### Implementation of
 
@@ -598,7 +664,7 @@ Whether the key can be exported.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key configuration has been updated.
 
 ***
 
@@ -620,7 +686,7 @@ The name of the key to backup.
 
 `Promise`\<`string`\>
 
-The private key as a Uint8Array.
+The Base64-encoded backup payload.
 
 #### Throws
 
@@ -646,13 +712,13 @@ The name of the key to restore.
 
 `string`
 
-The backup of the key.
+The Base64-encoded backup payload.
 
 #### Returns
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been restored.
 
 #### Throws
 
@@ -678,7 +744,7 @@ The name of the key to import.
 
 `string`
 
-The type of key to import, e.g. "ed25519", etc.
+The type of key to import, e.g. "ed25519".
 
 ##### privateKeyPem
 
@@ -690,7 +756,7 @@ The PEM bundle of the key to import.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been imported.
 
 #### Throws
 

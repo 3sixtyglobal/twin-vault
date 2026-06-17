@@ -130,7 +130,7 @@ The public key, can be undefined if the key type is symmetric.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been stored.
 
 #### Implementation of
 
@@ -140,7 +140,7 @@ Nothing.
 
 ### getKey() {#getkey}
 
-> **getKey**(`name`): `Promise`\<\{ `type`: `VaultKeyType`; `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+> **getKey**(`name`, `components?`): `Promise`\<\{ `type`: `VaultKeyType`; `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
 Get a key from the vault.
 
@@ -152,15 +152,51 @@ Get a key from the vault.
 
 The name of the key to get from the vault.
 
+##### components?
+
+`"public"` \| `"private"` \| `"both"`
+
+Which key components to return, defaults to "both".
+
 #### Returns
 
-`Promise`\<\{ `type`: `VaultKeyType`; `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+`Promise`\<\{ `type`: `VaultKeyType`; `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
-The key, publicKey can be undefined if key is symmetric.
+The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+
+#### Throws
+
+GeneralError if "private" is requested for a symmetric key.
 
 #### Implementation of
 
 `IVaultConnector.getKey`
+
+***
+
+### keyExists() {#keyexists}
+
+> **keyExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a key exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the key exists, false otherwise.
+
+#### Implementation of
+
+`IVaultConnector.keyExists`
 
 ***
 
@@ -183,6 +219,10 @@ The name of the key.
 `Promise`\<`VaultKeyType`\>
 
 The key type.
+
+#### Throws
+
+NotFoundError if the key does not exist.
 
 #### Implementation of
 
@@ -214,7 +254,7 @@ The new name of the key.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been renamed.
 
 #### Implementation of
 
@@ -234,13 +274,13 @@ Remove a key from the vault.
 
 `string`
 
-The name of the key to create in the value.
+The name of the key to remove from the vault.
 
 #### Returns
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been removed.
 
 #### Implementation of
 
@@ -298,13 +338,13 @@ The name of the key to use for verification.
 
 `Uint8Array`
 
-The data that was signed in base64.
+The data that was signed.
 
 ##### signature
 
 `Uint8Array`
 
-The signature to verify in base64.
+The signature to verify.
 
 #### Returns
 
@@ -342,13 +382,13 @@ The type of encryption to use.
 
 `Uint8Array`
 
-The data to encrypt in base64.
+The data to encrypt.
 
 #### Returns
 
 `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-The encrypted data in base64.
+The encrypted data.
 
 #### Implementation of
 
@@ -380,13 +420,13 @@ The type of encryption to use.
 
 `Uint8Array`
 
-The data to decrypt in base64.
+The data to decrypt.
 
 #### Returns
 
 `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-The decrypted data in base64.
+The decrypted data.
 
 #### Implementation of
 
@@ -396,7 +436,7 @@ The decrypted data in base64.
 
 ### setSecret() {#setsecret}
 
-> **setSecret**\<`T`\>(`name`, `item`): `Promise`\<`void`\>
+> **setSecret**\<`T`\>(`name`, `data`): `Promise`\<`void`\>
 
 Store a secret in the vault.
 
@@ -414,7 +454,7 @@ Store a secret in the vault.
 
 The name of the item in the vault to set.
 
-##### item
+##### data
 
 `T`
 
@@ -424,7 +464,7 @@ The item to add to the vault.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been stored.
 
 #### Implementation of
 
@@ -468,6 +508,32 @@ Error if the item is not found.
 
 ***
 
+### secretExists() {#secretexists}
+
+> **secretExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a secret exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the secret to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the secret exists, false otherwise.
+
+#### Implementation of
+
+`IVaultConnector.secretExists`
+
+***
+
 ### removeSecret() {#removesecret}
 
 > **removeSecret**(`name`): `Promise`\<`void`\>
@@ -486,7 +552,7 @@ The name of the item in the vault to remove.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been removed.
 
 #### Throws
 
