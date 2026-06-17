@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.0.3-next.9](https://github.com/iotaledger/twin-vault/compare/vault-connector-entity-storage-v0.0.3-next.8...vault-connector-entity-storage-v0.0.3-next.9) (2026-06-17)
+
+
+### Features
+
+* getKey components param ([#54](https://github.com/iotaledger/twin-vault/issues/54)) ([587c3ca](https://github.com/iotaledger/twin-vault/commit/587c3ca7c251c6bab761aa29223b01d58fcbdf9c))
+
+
+### Bug Fixes
+
+* use async getStore in tests ([dc3d941](https://github.com/iotaledger/twin-vault/commit/dc3d94179195cf19fc1c7cc6dbae2e1e98413142))
+* use async getStore in tests ([86c98b8](https://github.com/iotaledger/twin-vault/commit/86c98b8f5127d4b724fa9c663664d78f98a30d62))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.0.3-next.8 to 0.0.3-next.9
+
 ## [0.0.3-next.8](https://github.com/iotaledger/twin-vault/compare/vault-connector-entity-storage-v0.0.3-next.7...vault-connector-entity-storage-v0.0.3-next.8) (2026-05-20)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3-next.9](https://github.com/iotaledger/twin-vault/compare/vault-models-v0.0.3-next.8...vault-models-v0.0.3-next.9) (2026-06-17)
+
+
+### Features
+
+* getKey components param ([#54](https://github.com/iotaledger/twin-vault/issues/54)) ([587c3ca](https://github.com/iotaledger/twin-vault/commit/587c3ca7c251c6bab761aa29223b01d58fcbdf9c))
+
 ## [0.0.3-next.8](https://github.com/iotaledger/twin-vault/compare/vault-models-v0.0.3-next.7...vault-models-v0.0.3-next.8) (2026-05-20)
 
 
