@@ -74,4 +74,13 @@ export class VaultConnectorHelper {
 
 		return Jwt.fromSigningBytes(signingBytes);
 	}
+
+	/**
+	 * Build a key name from parts.
+	 * @param keyParts The parts of the key.
+	 * @returns The constructed key name.
+	 */
+	public static buildKeyName(...keyParts: string[]): string {
+		return keyParts.join("/");
+	}
 }

@@ -34,24 +34,36 @@ export interface IVaultConnector extends IComponent {
 	/**
 	 * Get a key from the vault.
 	 * @param name The name of the key to get from the vault.
-	 * @returns The key, publicKey can be undefined if key is symmetric.
+	 * @param components Which key components to return, defaults to "both".
+	 * @returns The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+	 * @throws GeneralError if "private" is requested for a symmetric key.
 	 */
-	getKey(name: string): Promise<{
+	getKey(
+		name: string,
+		components?: "public" | "private" | "both"
+	): Promise<{
 		/**
-		 * The type of the key e.g. Ed25519, Secp256k1.
+		 * The type of the key e.g. Ed25519.
 		 */
 		type: VaultKeyType;
 
 		/**
-		 * The private key.
+		 * The private key, undefined if only public component was requested.
 		 */
-		privateKey: Uint8Array;
+		privateKey?: Uint8Array;
 
 		/**
-		 * The public key, which can be undefined if key type is symmetric.
+		 * The public key, which can be undefined if key type is symmetric or only private was requested.
 		 */
 		publicKey?: Uint8Array;
 	}>;
+
+	/**
+	 * Check if a key exists in the vault.
+	 * @param name The name of the key to check.
+	 * @returns True if the key exists, false otherwise.
+	 */
+	keyExists(name: string): Promise<boolean>;
 
 	/**
 	 * Get the type of a key from the vault without retrieving the key material.
@@ -122,6 +134,13 @@ export interface IVaultConnector extends IComponent {
 	 * @returns A promise that resolves when the secret has been stored.
 	 */
 	setSecret<T>(name: string, data: T): Promise<void>;
+
+	/**
+	 * Check if a secret exists in the vault.
+	 * @param name The name of the secret to check.
+	 * @returns True if the secret exists, false otherwise.
+	 */
+	secretExists(name: string): Promise<boolean>;
 
 	/**
 	 * Get a secret from the vault.

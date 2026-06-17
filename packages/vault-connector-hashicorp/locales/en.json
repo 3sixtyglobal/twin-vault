@@ -32,6 +32,7 @@
 			"keyNotFound": "The key \"{notFoundId}\" was not found in the vault",
 			"secretNotFound": "The secret \"{notFoundId}\" was not found in the vault",
 			"getKeyFailed": "Failed to get key \"{name}\"",
+			"symmetricKeyHasNoPrivateKey": "The symmetric key \"{name}\" does not have a separate private key component",
 			"signDataFailed": "Failed to sign data \"{name}\"",
 			"invalidSignResponse": "Invalid sign response \"{name}\"",
 			"verifyDataFailed": "Failed to verify data \"{name}\"",

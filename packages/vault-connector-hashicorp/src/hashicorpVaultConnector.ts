@@ -253,6 +253,22 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	}
 
 	/**
+	 * Check if a secret exists in the vault.
+	 * @param name The name of the secret to check.
+	 * @returns True if the secret exists, false otherwise.
+	 */
+	public async secretExists(name: string): Promise<boolean> {
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+
+		try {
+			await this.getSecretVersions(name);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	/**
 	 * Get a secret from the vault.
 	 * @param name The name of the item in the vault to get.
 	 * @returns The item from the vault.
@@ -461,11 +477,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			let publicKeyForPayload: string | null = null;
 			let privateKeyForPayload: string | null = null;
 
-			if (
-				type === VaultKeyType.Ed25519 ||
-				type === VaultKeyType.Secp256k1 ||
-				type === VaultKeyType.ChaCha20Poly1305
-			) {
+			if (type === VaultKeyType.Ed25519 || type === VaultKeyType.ChaCha20Poly1305) {
 				const combinedKey = new Uint8Array(privateKey.length + (publicKey?.length ?? 0));
 				combinedKey.set(privateKey);
 				if (publicKey) {
@@ -517,25 +529,39 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	/**
 	 * Get a key from the vault.
 	 * @param name The name of the key to get.
-	 * @returns The key, publicKey can be undefined if key is symmetric.
+	 * @param components Which key components to return, defaults to "both".
+	 * @returns The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+	 * @throws GeneralError if "private" is requested for a symmetric key.
 	 */
-	public async getKey(name: string): Promise<{
+	public async getKey(
+		name: string,
+		components?: "public" | "private" | "both"
+	): Promise<{
 		/**
 		 * The type of the key e.g. Ed25519.
 		 */
 		type: VaultKeyType;
 
 		/**
-		 * The private key.
+		 * The private key, undefined if only public component was requested.
 		 */
-		privateKey: Uint8Array;
+		privateKey?: Uint8Array;
 
 		/**
-		 * The public key, which can be undefined if key type is symmetric.
+		 * The public key, which can be undefined if key type is symmetric or only private was requested.
 		 */
 		publicKey?: Uint8Array;
 	}> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+
+		components ??= "both";
+
+		Guards.arrayOneOf<"public" | "private" | "both">(
+			HashicorpVaultConnector.CLASS_NAME,
+			nameof(components),
+			components,
+			["public", "private", "both"]
+		);
 
 		let keyDetails;
 		try {
@@ -550,31 +576,55 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			);
 		}
 
+		const type = this.mapHashicorpKeyType(keyDetails.type);
+		const isAsymmetric = this.isAsymmetricKeyType(type);
+
+		if (!isAsymmetric && components === "private") {
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "symmetricKeyHasNoPrivateKey", {
+				name
+			});
+		}
+
 		try {
 			let publicKey: Uint8Array | undefined;
 			let privateKey: Uint8Array | undefined;
 
-			const type = this.mapHashicorpKeyType(keyDetails.type);
-			if (this.isAsymmetricKeyType(type)) {
-				const privateKeyData = await this.exportKey(name, "signing-key");
-				privateKey = privateKeyData.key;
-				const publicKeyData = await this.exportKey(name, "public-key");
-				publicKey = publicKeyData.key;
-			} else {
+			if (isAsymmetric) {
+				if (components !== "public") {
+					const privateKeyData = await this.exportKey(name, "signing-key");
+					privateKey = privateKeyData.key;
+				}
+				if (components !== "private") {
+					const publicKeyData = await this.exportKey(name, "public-key");
+					publicKey = publicKeyData.key;
+				}
+			} else if (components !== "public") {
 				const privateKeyData = await this.exportKey(name, "encryption-key");
 				privateKey = privateKeyData.key;
 			}
 
-			return {
-				type,
-				privateKey,
-				publicKey
-			};
+			return { type, privateKey, publicKey };
 		} catch (err) {
 			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
 				throw err;
 			}
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "getKeyFailed", { name }, err);
+		}
+	}
+
+	/**
+	 * Check if a key exists in the vault.
+	 * @param name The name of the key to check.
+	 * @returns True if the key exists, false otherwise.
+	 */
+	public async keyExists(name: string): Promise<boolean> {
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+
+		try {
+			await this.readKey(name);
+			return true;
+		} catch {
+			return false;
 		}
 	}
 
@@ -614,20 +664,28 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(newName), newName);
 
 		try {
-			let existingVaultKey;
-			try {
-				existingVaultKey = await this.readKey(newName);
-			} catch {
-				// If we have an error we just continue as it means the key does not exist
-			}
-			if (existingVaultKey) {
-				throw new AlreadyExistsError(
-					HashicorpVaultConnector.CLASS_NAME,
-					"keyAlreadyExists",
-					newName
-				);
-			}
+			await this.readKey(name);
+		} catch (err) {
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
+		}
 
+		let existingVaultKey;
+		try {
+			existingVaultKey = await this.readKey(newName);
+		} catch {
+			// key does not exist, which is what we want
+		}
+		if (existingVaultKey) {
+			throw new AlreadyExistsError(HashicorpVaultConnector.CLASS_NAME, "keyAlreadyExists", newName);
+		}
+
+		try {
 			const backup = await this.backupKey(name);
 			await this.restoreKey(newName, backup);
 			await this.removeKey(name);
@@ -1328,7 +1386,6 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	private isAsymmetricKeyType(type: VaultKeyType): boolean {
 		switch (type) {
 			case VaultKeyType.Ed25519:
-			case VaultKeyType.Secp256k1:
 				return true;
 			default:
 				return false;

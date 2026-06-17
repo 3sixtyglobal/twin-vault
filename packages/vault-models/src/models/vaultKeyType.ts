@@ -12,11 +12,6 @@ export const VaultKeyType = {
 	Ed25519: 0,
 
 	/**
-	 * Secp256k1. (asymmetric)
-	 */
-	Secp256k1: 1,
-
-	/**
 	 * The ChaCha20Poly1305. (symmetric)
 	 */
 	ChaCha20Poly1305: 2
