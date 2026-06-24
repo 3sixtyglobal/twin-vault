@@ -3,7 +3,7 @@
 import { Guards, UnauthorizedError } from "@twin.org/core";
 import { nameof } from "@twin.org/nameof";
 import { Jwt, type IJwtHeader, type IJwtPayload } from "@twin.org/web";
-import type { IVaultConnector } from "../models/IVaultConnector";
+import type { IVaultConnector } from "../models/IVaultConnector.js";
 
 /**
  * Helpers for vault connectors.
@@ -11,9 +11,8 @@ import type { IVaultConnector } from "../models/IVaultConnector";
 export class VaultConnectorHelper {
 	/**
 	 * Runtime name for the class.
-	 * @internal
 	 */
-	private static readonly _CLASS_NAME: string = nameof<VaultConnectorHelper>();
+	public static readonly CLASS_NAME: string = nameof<VaultConnectorHelper>();
 
 	/**
 	 * Sign a JWT using vault connector.
@@ -30,13 +29,13 @@ export class VaultConnectorHelper {
 		payload: IJwtPayload
 	): Promise<string> {
 		Guards.object<IVaultConnector>(
-			VaultConnectorHelper._CLASS_NAME,
+			VaultConnectorHelper.CLASS_NAME,
 			nameof(vaultConnector),
 			vaultConnector
 		);
-		Guards.stringValue(VaultConnectorHelper._CLASS_NAME, nameof(keyName), keyName);
-		Guards.object(VaultConnectorHelper._CLASS_NAME, nameof(header), header);
-		Guards.object(VaultConnectorHelper._CLASS_NAME, nameof(payload), payload);
+		Guards.stringValue(VaultConnectorHelper.CLASS_NAME, nameof(keyName), keyName);
+		Guards.object(VaultConnectorHelper.CLASS_NAME, nameof(header), header);
+		Guards.object(VaultConnectorHelper.CLASS_NAME, nameof(payload), payload);
 
 		const signingBytes = Jwt.toSigningBytes(header, payload);
 		const signatureBytes = await vaultConnector.sign(keyName, signingBytes);
@@ -59,20 +58,29 @@ export class VaultConnectorHelper {
 		payload: U;
 	}> {
 		Guards.object<IVaultConnector>(
-			VaultConnectorHelper._CLASS_NAME,
+			VaultConnectorHelper.CLASS_NAME,
 			nameof(vaultConnector),
 			vaultConnector
 		);
-		Guards.stringValue(VaultConnectorHelper._CLASS_NAME, nameof(keyName), keyName);
-		Guards.stringValue(VaultConnectorHelper._CLASS_NAME, nameof(token), token);
+		Guards.stringValue(VaultConnectorHelper.CLASS_NAME, nameof(keyName), keyName);
+		Guards.stringValue(VaultConnectorHelper.CLASS_NAME, nameof(token), token);
 
 		const { signingBytes, signature } = Jwt.tokenToBytes(token);
 
 		const verified = await vaultConnector.verify(keyName, signingBytes, signature);
 		if (!verified) {
-			throw new UnauthorizedError(this._CLASS_NAME, "invalidSignature");
+			throw new UnauthorizedError(VaultConnectorHelper.CLASS_NAME, "invalidSignature");
 		}
 
 		return Jwt.fromSigningBytes(signingBytes);
+	}
+
+	/**
+	 * Build a key name from parts.
+	 * @param keyParts The parts of the key.
+	 * @returns The constructed key name.
+	 */
+	public static buildKeyName(...keyParts: string[]): string {
+		return keyParts.join("/");
 	}
 }

@@ -8,7 +8,7 @@ Interface describing a vault securely storing data.
 
 ## Methods
 
-### createKey()
+### createKey() {#createkey}
 
 > **createKey**(`name`, `type`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -36,7 +36,7 @@ The public key for the key pair.
 
 ***
 
-### addKey()
+### addKey() {#addkey}
 
 > **addKey**(`name`, `type`, `privateKey`, `publicKey?`): `Promise`\<`void`\>
 
@@ -72,13 +72,13 @@ The public key, can be undefined if the key type is symmetric.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been stored.
 
 ***
 
-### getKey()
+### getKey() {#getkey}
 
-> **getKey**(`name`): `Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+> **getKey**(`name`, `components?`): `Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
 Get a key from the vault.
 
@@ -90,15 +90,73 @@ Get a key from the vault.
 
 The name of the key to get from the vault.
 
+##### components?
+
+`"public"` \| `"private"` \| `"both"`
+
+Which key components to return, defaults to "both".
+
 #### Returns
 
-`Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+`Promise`\<\{ `type`: [`VaultKeyType`](../type-aliases/VaultKeyType.md); `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
-The key, publicKey can be undefined if key is symmetric.
+The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+
+#### Throws
+
+GeneralError if "private" is requested for a symmetric key.
 
 ***
 
-### renameKey()
+### keyExists() {#keyexists}
+
+> **keyExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a key exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the key exists, false otherwise.
+
+***
+
+### getKeyType() {#getkeytype}
+
+> **getKeyType**(`name`): `Promise`\<[`VaultKeyType`](../type-aliases/VaultKeyType.md)\>
+
+Get the type of a key from the vault without retrieving the key material.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key.
+
+#### Returns
+
+`Promise`\<[`VaultKeyType`](../type-aliases/VaultKeyType.md)\>
+
+The key type.
+
+#### Throws
+
+NotFoundError if the key does not exist.
+
+***
+
+### renameKey() {#renamekey}
 
 > **renameKey**(`name`, `newName`): `Promise`\<`void`\>
 
@@ -122,11 +180,11 @@ The new name of the key.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been renamed.
 
 ***
 
-### removeKey()
+### removeKey() {#removekey}
 
 > **removeKey**(`name`): `Promise`\<`void`\>
 
@@ -144,11 +202,11 @@ The name of the key to remove from the vault.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been removed.
 
 ***
 
-### sign()
+### sign() {#sign}
 
 > **sign**(`name`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -176,7 +234,7 @@ The signature for the data.
 
 ***
 
-### verify()
+### verify() {#verify}
 
 > **verify**(`name`, `data`, `signature`): `Promise`\<`boolean`\>
 
@@ -210,7 +268,7 @@ True if the verification is successful.
 
 ***
 
-### encrypt()
+### encrypt() {#encrypt}
 
 > **encrypt**(`name`, `encryptionType`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -244,7 +302,7 @@ The encrypted data.
 
 ***
 
-### decrypt()
+### decrypt() {#decrypt}
 
 > **decrypt**(`name`, `encryptionType`, `encryptedData`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -278,7 +336,7 @@ The decrypted data.
 
 ***
 
-### setSecret()
+### setSecret() {#setsecret}
 
 > **setSecret**\<`T`\>(`name`, `data`): `Promise`\<`void`\>
 
@@ -308,11 +366,33 @@ The secret to add to the vault.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been stored.
 
 ***
 
-### getSecret()
+### secretExists() {#secretexists}
+
+> **secretExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a secret exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the secret to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the secret exists, false otherwise.
+
+***
+
+### getSecret() {#getsecret}
 
 > **getSecret**\<`T`\>(`name`): `Promise`\<`T`\>
 
@@ -344,7 +424,7 @@ Error if the secret is not found.
 
 ***
 
-### removeSecret()
+### removeSecret() {#removesecret}
 
 > **removeSecret**(`name`): `Promise`\<`void`\>
 
@@ -362,7 +442,7 @@ The name of the secret in the vault to remove.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been removed.
 
 #### Throws
 

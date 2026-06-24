@@ -4,9 +4,9 @@ Options for the entity storage vault connector constructor.
 
 ## Properties
 
-### vaultKeyEntityStorageType?
+### vaultKeyEntityStorageType? {#vaultkeyentitystoragetype}
 
-> `optional` **vaultKeyEntityStorageType**: `string`
+> `optional` **vaultKeyEntityStorageType?**: `string`
 
 The vault key entity storage connector type.
 
@@ -18,9 +18,9 @@ vault-key
 
 ***
 
-### vaultSecretEntityStorageType?
+### vaultSecretEntityStorageType? {#vaultsecretentitystoragetype}
 
-> `optional` **vaultSecretEntityStorageType**: `string`
+> `optional` **vaultSecretEntityStorageType?**: `string`
 
 The vault secret entity storage connector type.
 
@@ -29,3 +29,11 @@ The vault secret entity storage connector type.
 ```ts
 vault-secret
 ```
+
+***
+
+### config? {#config}
+
+> `optional` **config?**: [`IEntityStorageVaultConnectorConfig`](IEntityStorageVaultConnectorConfig.md)
+
+The entity storage vault connector configuration.

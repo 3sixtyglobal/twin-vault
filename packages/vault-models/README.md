@@ -1,6 +1,6 @@
 # TWIN Vault Models
 
-Models which define the structure of the vault contracts and connectors.
+This package defines the shared contracts, enums, and factory helpers used by vault connectors, so applications can integrate key and secret operations through a consistent model.
 
 ## Installation
 

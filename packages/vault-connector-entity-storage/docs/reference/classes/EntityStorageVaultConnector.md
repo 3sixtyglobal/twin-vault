@@ -28,7 +28,7 @@ The options for the connector.
 
 ## Properties
 
-### NAMESPACE
+### NAMESPACE {#namespace}
 
 > `readonly` `static` **NAMESPACE**: `string` = `"entity-storage"`
 
@@ -36,19 +36,33 @@ The namespace supported by the vault connector.
 
 ***
 
-### CLASS\_NAME
+### CLASS\_NAME {#class_name}
 
-> `readonly` **CLASS\_NAME**: `string`
+> `readonly` `static` **CLASS\_NAME**: `string`
 
 Runtime name for the class.
 
-#### Implementation of
-
-`IVaultConnector.CLASS_NAME`
-
 ## Methods
 
-### createKey()
+### className() {#classname}
+
+> **className**(): `string`
+
+Returns the class name of the component.
+
+#### Returns
+
+`string`
+
+The class name of the component.
+
+#### Implementation of
+
+`IVaultConnector.className`
+
+***
+
+### createKey() {#createkey}
 
 > **createKey**(`name`, `type`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -80,7 +94,7 @@ The public key for the key pair.
 
 ***
 
-### addKey()
+### addKey() {#addkey}
 
 > **addKey**(`name`, `type`, `privateKey`, `publicKey?`): `Promise`\<`void`\>
 
@@ -116,7 +130,7 @@ The public key, can be undefined if the key type is symmetric.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been stored.
 
 #### Implementation of
 
@@ -124,9 +138,9 @@ Nothing.
 
 ***
 
-### getKey()
+### getKey() {#getkey}
 
-> **getKey**(`name`): `Promise`\<\{ `type`: `VaultKeyType`; `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+> **getKey**(`name`, `components?`): `Promise`\<\{ `type`: `VaultKeyType`; `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
 Get a key from the vault.
 
@@ -138,11 +152,21 @@ Get a key from the vault.
 
 The name of the key to get from the vault.
 
+##### components?
+
+`"public"` \| `"private"` \| `"both"`
+
+Which key components to return, defaults to "both".
+
 #### Returns
 
-`Promise`\<\{ `type`: `VaultKeyType`; `privateKey`: `Uint8Array`; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
+`Promise`\<\{ `type`: `VaultKeyType`; `privateKey?`: `Uint8Array`\<`ArrayBufferLike`\>; `publicKey?`: `Uint8Array`\<`ArrayBufferLike`\>; \}\>
 
-The key, publicKey can be undefined if key is symmetric.
+The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+
+#### Throws
+
+GeneralError if "private" is requested for a symmetric key.
 
 #### Implementation of
 
@@ -150,7 +174,63 @@ The key, publicKey can be undefined if key is symmetric.
 
 ***
 
-### renameKey()
+### keyExists() {#keyexists}
+
+> **keyExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a key exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the key exists, false otherwise.
+
+#### Implementation of
+
+`IVaultConnector.keyExists`
+
+***
+
+### getKeyType() {#getkeytype}
+
+> **getKeyType**(`name`): `Promise`\<`VaultKeyType`\>
+
+Get the type of a key from the vault without retrieving the key material.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the key.
+
+#### Returns
+
+`Promise`\<`VaultKeyType`\>
+
+The key type.
+
+#### Throws
+
+NotFoundError if the key does not exist.
+
+#### Implementation of
+
+`IVaultConnector.getKeyType`
+
+***
+
+### renameKey() {#renamekey}
 
 > **renameKey**(`name`, `newName`): `Promise`\<`void`\>
 
@@ -174,7 +254,7 @@ The new name of the key.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been renamed.
 
 #### Implementation of
 
@@ -182,7 +262,7 @@ Nothing.
 
 ***
 
-### removeKey()
+### removeKey() {#removekey}
 
 > **removeKey**(`name`): `Promise`\<`void`\>
 
@@ -194,13 +274,13 @@ Remove a key from the vault.
 
 `string`
 
-The name of the key to create in the value.
+The name of the key to remove from the vault.
 
 #### Returns
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the key has been removed.
 
 #### Implementation of
 
@@ -208,7 +288,7 @@ Nothing.
 
 ***
 
-### sign()
+### sign() {#sign}
 
 > **sign**(`name`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -240,7 +320,7 @@ The signature for the data.
 
 ***
 
-### verify()
+### verify() {#verify}
 
 > **verify**(`name`, `data`, `signature`): `Promise`\<`boolean`\>
 
@@ -258,13 +338,13 @@ The name of the key to use for verification.
 
 `Uint8Array`
 
-The data that was signed in base64.
+The data that was signed.
 
 ##### signature
 
 `Uint8Array`
 
-The signature to verify in base64.
+The signature to verify.
 
 #### Returns
 
@@ -278,7 +358,7 @@ True if the verification is successful.
 
 ***
 
-### encrypt()
+### encrypt() {#encrypt}
 
 > **encrypt**(`name`, `encryptionType`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -302,13 +382,13 @@ The type of encryption to use.
 
 `Uint8Array`
 
-The data to encrypt in base64.
+The data to encrypt.
 
 #### Returns
 
 `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-The encrypted data in base64.
+The encrypted data.
 
 #### Implementation of
 
@@ -316,7 +396,7 @@ The encrypted data in base64.
 
 ***
 
-### decrypt()
+### decrypt() {#decrypt}
 
 > **decrypt**(`name`, `encryptionType`, `encryptedData`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -340,13 +420,13 @@ The type of encryption to use.
 
 `Uint8Array`
 
-The data to decrypt in base64.
+The data to decrypt.
 
 #### Returns
 
 `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-The decrypted data in base64.
+The decrypted data.
 
 #### Implementation of
 
@@ -354,9 +434,9 @@ The decrypted data in base64.
 
 ***
 
-### setSecret()
+### setSecret() {#setsecret}
 
-> **setSecret**\<`T`\>(`name`, `item`): `Promise`\<`void`\>
+> **setSecret**\<`T`\>(`name`, `data`): `Promise`\<`void`\>
 
 Store a secret in the vault.
 
@@ -374,7 +454,7 @@ Store a secret in the vault.
 
 The name of the item in the vault to set.
 
-##### item
+##### data
 
 `T`
 
@@ -384,7 +464,7 @@ The item to add to the vault.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been stored.
 
 #### Implementation of
 
@@ -392,7 +472,7 @@ Nothing.
 
 ***
 
-### getSecret()
+### getSecret() {#getsecret}
 
 > **getSecret**\<`T`\>(`name`): `Promise`\<`T`\>
 
@@ -428,7 +508,33 @@ Error if the item is not found.
 
 ***
 
-### removeSecret()
+### secretExists() {#secretexists}
+
+> **secretExists**(`name`): `Promise`\<`boolean`\>
+
+Check if a secret exists in the vault.
+
+#### Parameters
+
+##### name
+
+`string`
+
+The name of the secret to check.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the secret exists, false otherwise.
+
+#### Implementation of
+
+`IVaultConnector.secretExists`
+
+***
+
+### removeSecret() {#removesecret}
 
 > **removeSecret**(`name`): `Promise`\<`void`\>
 
@@ -446,7 +552,7 @@ The name of the item in the vault to remove.
 
 `Promise`\<`void`\>
 
-Nothing.
+A promise that resolves when the secret has been removed.
 
 #### Throws
 

@@ -12,9 +12,17 @@ Helpers for vault connectors.
 
 `VaultConnectorHelper`
 
+## Properties
+
+### CLASS\_NAME {#class_name}
+
+> `readonly` `static` **CLASS\_NAME**: `string`
+
+Runtime name for the class.
+
 ## Methods
 
-### jwtSigner()
+### jwtSigner() {#jwtsigner}
 
 > `static` **jwtSigner**(`vaultConnector`, `keyName`, `header`, `payload`): `Promise`\<`string`\>
 
@@ -36,13 +44,13 @@ The name of the key to sign with.
 
 ##### header
 
-`IJwtHeader`
+`JWTHeaderParameters`
 
 The header to sign.
 
 ##### payload
 
-`IJwtPayload`
+`JWTPayload`
 
 The payload to sign.
 
@@ -54,7 +62,7 @@ The token.
 
 ***
 
-### jwtVerifier()
+### jwtVerifier() {#jwtverifier}
 
 > `static` **jwtVerifier**\<`T`, `U`\>(`vaultConnector`, `keyName`, `token`): `Promise`\<\{ `header`: `T`; `payload`: `U`; \}\>
 
@@ -64,11 +72,11 @@ Verify a JWT using a vault connector.
 
 ##### T
 
-`T` *extends* `IJwtHeader`
+`T` *extends* `JWTHeaderParameters`
 
 ##### U
 
-`U` *extends* `IJwtPayload`
+`U` *extends* `JWTPayload`
 
 #### Parameters
 
@@ -95,3 +103,25 @@ The token to verify.
 `Promise`\<\{ `header`: `T`; `payload`: `U`; \}\>
 
 The header and payload if verification successful.
+
+***
+
+### buildKeyName() {#buildkeyname}
+
+> `static` **buildKeyName**(...`keyParts`): `string`
+
+Build a key name from parts.
+
+#### Parameters
+
+##### keyParts
+
+...`string`[]
+
+The parts of the key.
+
+#### Returns
+
+`string`
+
+The constructed key name.

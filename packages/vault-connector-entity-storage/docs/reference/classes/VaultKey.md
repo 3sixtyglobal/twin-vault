@@ -14,7 +14,7 @@ Class defining a vault key.
 
 ## Properties
 
-### id
+### id {#id}
 
 > **id**: `string`
 
@@ -22,15 +22,15 @@ The id.
 
 ***
 
-### type
+### type {#type}
 
 > **type**: `VaultKeyType`
 
-The type of the key e.g. Ed25519, Secp256k1.
+The type of the key e.g. Ed25519.
 
 ***
 
-### privateKey
+### privateKey {#privatekey}
 
 > **privateKey**: `string`
 
@@ -38,8 +38,8 @@ The private key in base64 format.
 
 ***
 
-### publicKey?
+### publicKey? {#publickey}
 
-> `optional` **publicKey**: `string`
+> `optional` **publicKey?**: `string`
 
 The public key in base64 format.

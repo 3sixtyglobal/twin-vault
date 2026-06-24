@@ -1,6 +1,6 @@
 # TWIN Vault Connector Hashicorp
 
-Vault connector implementation using Hashicorp.
+This package integrates managed key and secret operations with HashiCorp Vault, providing connector APIs for transit cryptography and KV secret workflows in externally hosted vault environments.
 
 ## Installation
 
@@ -8,37 +8,12 @@ Vault connector implementation using Hashicorp.
 npm install @twin.org/vault-connector-hashicorp
 ```
 
-## Testing
+## Docker
 
-The tests developed are functional tests and need an instance of Hashicorp Vault up and running. To run Hashicorp Vault locally:
+To perform testing of this component it may be necessary to launch a local instance to communicate with.
 
-```sh
-docker run -d --name twin-vault-hashicorp --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=root' -p 8200:8200 hashicorp/vault:1.18.0
-```
-
-After starting the vault, you need to do the following steps within the docker shell, launch the shell using:
-
-```sh
-docker exec -t -i twin-vault-hashicorp sh
-```
-
-1. Set the environment variables for the vault address and token:
-
-```sh
-export VAULT_ADDR="http://127.0.0.1:8200"
-export VAULT_TOKEN="root"
-```
-
-2. Enable the transit secret engine:
-
-```sh
-vault secrets enable -address="http://127.0.0.1:8200" transit
-```
-
-Afterwards you can run the tests from your development environment as follows:
-
-```sh
-npm run test
+```shell
+docker run -d --name twin-vault-hashicorp --cap-add=IPC_LOCK -p 18200:8200 -e VAULT_DEV_ROOT_TOKEN_ID=root hashicorp/vault:1.21.4
 ```
 
 ## Examples

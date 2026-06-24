@@ -9,16 +9,16 @@ import {
 	NotFoundError,
 	RandomHelper
 } from "@twin.org/core";
-import { Bip39, ChaCha20Poly1305, Ed25519, Secp256k1 } from "@twin.org/crypto";
+import { Bip39, ChaCha20Poly1305, Ed25519 } from "@twin.org/crypto";
 import {
 	EntityStorageConnectorFactory,
 	type IEntityStorageConnector
 } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
 import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
-import type { VaultKey } from "./entities/vaultKey";
-import type { VaultSecret } from "./entities/vaultSecret";
-import type { IEntityStorageVaultConnectorConstructorOptions } from "./models/IEntityStorageVaultConnectorConstructorOptions";
+import type { VaultKey } from "./entities/vaultKey.js";
+import type { VaultSecret } from "./entities/vaultSecret.js";
+import type { IEntityStorageVaultConnectorConstructorOptions } from "./models/IEntityStorageVaultConnectorConstructorOptions.js";
 
 /**
  * Class for performing vault operations in entity storage.
@@ -32,7 +32,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	/**
 	 * Runtime name for the class.
 	 */
-	public readonly CLASS_NAME: string = nameof<EntityStorageVaultConnector>();
+	public static readonly CLASS_NAME: string = nameof<EntityStorageVaultConnector>();
 
 	/**
 	 * The entity storage for the vault keys.
@@ -47,6 +47,12 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	private readonly _vaultSecretEntityStorageConnector: IEntityStorageConnector<VaultSecret>;
 
 	/**
+	 * A prefix for the keys stored in the vault.
+	 * @internal
+	 */
+	private readonly _prefix?: string;
+
+	/**
 	 * Create a new instance of EntityStorageVaultConnector.
 	 * @param options The options for the connector.
 	 */
@@ -57,6 +63,15 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		this._vaultSecretEntityStorageConnector = EntityStorageConnectorFactory.get(
 			options?.vaultSecretEntityStorageType ?? "vault-secret"
 		);
+		this._prefix = options?.config?.prefix;
+	}
+
+	/**
+	 * Returns the class name of the component.
+	 * @returns The class name of the component.
+	 */
+	public className(): string {
+		return EntityStorageVaultConnector.CLASS_NAME;
 	}
 
 	/**
@@ -66,17 +81,23 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @returns The public key for the key pair.
 	 */
 	public async createKey(name: string, type: VaultKeyType): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultKeyType>(
-			this.CLASS_NAME,
+			EntityStorageVaultConnector.CLASS_NAME,
 			nameof(type),
 			type,
 			Object.values(VaultKeyType)
 		);
 
-		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (!Is.empty(existingVaultKey)) {
-			throw new AlreadyExistsError(this.CLASS_NAME, "keyAlreadyExists", name);
+			throw new AlreadyExistsError(
+				EntityStorageVaultConnector.CLASS_NAME,
+				"keyAlreadyExists",
+				name
+			);
 		}
 
 		const mnemonic = Bip39.randomMnemonic();
@@ -88,16 +109,13 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		if (type === VaultKeyType.Ed25519) {
 			privateKey = seed.slice(0, Ed25519.PRIVATE_KEY_SIZE);
 			publicKey = Ed25519.publicKeyFromPrivateKey(privateKey);
-		} else if (type === VaultKeyType.Secp256k1) {
-			privateKey = seed.slice(0, Secp256k1.PRIVATE_KEY_SIZE);
-			publicKey = Secp256k1.publicKeyFromPrivateKey(privateKey);
 		} else {
 			// ChaCha20Poly1305 is symmetric, so the private key is the same as the public key.
 			privateKey = seed.slice(0, 32);
 		}
 
 		const vaultKey: VaultKey = {
-			id: name,
+			id: fullKeyName,
 			type,
 			privateKey: Converter.bytesToBase64(privateKey),
 			publicKey: Is.undefined(publicKey) ? undefined : Converter.bytesToBase64(publicKey)
@@ -114,7 +132,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @param type The type of key to add.
 	 * @param privateKey The private key.
 	 * @param publicKey The public key, can be undefined if the key type is symmetric.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been stored.
 	 */
 	public async addKey(
 		name: string,
@@ -122,25 +140,31 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 		privateKey: Uint8Array,
 		publicKey?: Uint8Array
 	): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultKeyType>(
-			this.CLASS_NAME,
+			EntityStorageVaultConnector.CLASS_NAME,
 			nameof(type),
 			type,
 			Object.values(VaultKeyType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(privateKey), privateKey);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(privateKey), privateKey);
 		if (type !== VaultKeyType.ChaCha20Poly1305) {
-			Guards.uint8Array(this.CLASS_NAME, nameof(publicKey), publicKey);
+			Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(publicKey), publicKey);
 		}
 
-		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (!Is.empty(existingVaultKey)) {
-			throw new AlreadyExistsError(this.CLASS_NAME, "keyAlreadyExists", name);
+			throw new AlreadyExistsError(
+				EntityStorageVaultConnector.CLASS_NAME,
+				"keyAlreadyExists",
+				name
+			);
 		}
 
 		const vaultKey: VaultKey = {
-			id: name,
+			id: fullKeyName,
 			type,
 			privateKey: Converter.bytesToBase64(privateKey),
 			publicKey: Is.undefined(publicKey) ? undefined : Converter.bytesToBase64(publicKey)
@@ -152,76 +176,153 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	/**
 	 * Get a key from the vault.
 	 * @param name The name of the key to get from the vault.
-	 * @returns The key, publicKey can be undefined if key is symmetric.
+	 * @param components Which key components to return, defaults to "both".
+	 * @returns The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+	 * @throws GeneralError if "private" is requested for a symmetric key.
 	 */
-	public async getKey(name: string): Promise<{
+	public async getKey(
+		name: string,
+		components?: "public" | "private" | "both"
+	): Promise<{
 		/**
-		 * The type of the key e.g. Ed25519, Secp256k1.
+		 * The type of the key e.g. Ed25519.
 		 */
 		type: VaultKeyType;
 
 		/**
-		 * The private key.
+		 * The private key, undefined if only public component was requested.
 		 */
-		privateKey: Uint8Array;
+		privateKey?: Uint8Array;
 
 		/**
-		 * The public key, which can be undefined if key type is symmetric.
+		 * The public key, which can be undefined if key type is symmetric or only private was requested.
 		 */
 		publicKey?: Uint8Array;
 	}> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		components ??= "both";
+
+		Guards.arrayOneOf<"public" | "private" | "both">(
+			EntityStorageVaultConnector.CLASS_NAME,
+			nameof(components),
+			components,
+			["public", "private", "both"]
+		);
+
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
+		}
+
+		if (components === "private" && vaultKey.type === VaultKeyType.ChaCha20Poly1305) {
+			throw new GeneralError(
+				EntityStorageVaultConnector.CLASS_NAME,
+				"symmetricKeyHasNoPrivateKey",
+				{
+					name
+				}
+			);
 		}
 
 		return {
 			type: vaultKey.type,
-			privateKey: Converter.base64ToBytes(vaultKey.privateKey),
-			publicKey: Is.undefined(vaultKey.publicKey)
-				? undefined
-				: Converter.base64ToBytes(vaultKey.publicKey)
+			privateKey:
+				components !== "public" ? Converter.base64ToBytes(vaultKey.privateKey) : undefined,
+			publicKey:
+				components !== "private" && !Is.undefined(vaultKey.publicKey)
+					? Converter.base64ToBytes(vaultKey.publicKey)
+					: undefined
 		};
+	}
+
+	/**
+	 * Check if a key exists in the vault.
+	 * @param name The name of the key to check.
+	 * @returns True if the key exists, false otherwise.
+	 */
+	public async keyExists(name: string): Promise<boolean> {
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+
+		const fullKeyName = this.createKeyName(name);
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
+		return !Is.empty(vaultKey);
+	}
+
+	/**
+	 * Get the type of a key from the vault without retrieving the key material.
+	 * @param name The name of the key.
+	 * @returns The key type.
+	 * @throws NotFoundError if the key does not exist.
+	 */
+	public async getKeyType(name: string): Promise<VaultKeyType> {
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
+		if (Is.empty(vaultKey)) {
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
+		}
+
+		return vaultKey.type;
 	}
 
 	/**
 	 * Rename a key in the vault.
 	 * @param name The name of the key to rename.
 	 * @param newName The new name of the key.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been renamed.
 	 */
 	public async renameKey(name: string, newName: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.stringValue(this.CLASS_NAME, nameof(newName), newName);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(newName), newName);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
-		await this._vaultKeyEntityStorageConnector.remove(name);
+		const newFullKeyName = this.createKeyName(newName);
 
-		vaultKey.id = newName;
+		if (fullKeyName !== newFullKeyName) {
+			const existingVaultKey = await this._vaultKeyEntityStorageConnector.get(newFullKeyName);
+			if (!Is.empty(existingVaultKey)) {
+				throw new AlreadyExistsError(
+					EntityStorageVaultConnector.CLASS_NAME,
+					"keyAlreadyExists",
+					newName
+				);
+			}
 
-		await this._vaultKeyEntityStorageConnector.set(vaultKey);
+			vaultKey.id = newFullKeyName;
+
+			await this._vaultKeyEntityStorageConnector.set(vaultKey);
+
+			await this._vaultKeyEntityStorageConnector.remove(fullKeyName);
+		}
 	}
 
 	/**
 	 * Remove a key from the vault.
-	 * @param name The name of the key to create in the value.
-	 * @returns Nothing.
+	 * @param name The name of the key to remove from the vault.
+	 * @returns A promise that resolves when the key has been removed.
 	 */
 	public async removeKey(name: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
-		await this._vaultKeyEntityStorageConnector.remove(name);
+		await this._vaultKeyEntityStorageConnector.remove(fullKeyName);
 	}
 
 	/**
@@ -231,22 +332,24 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @returns The signature for the data.
 	 */
 	public async sign(name: string, data: Uint8Array): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		let signatureBytes;
 		const privateKeyBytes = Converter.base64ToBytes(vaultKey.privateKey);
 		if (vaultKey.type === VaultKeyType.Ed25519) {
 			signatureBytes = Ed25519.sign(privateKeyBytes, data);
-		} else if (vaultKey.type === VaultKeyType.Secp256k1) {
-			signatureBytes = Secp256k1.sign(privateKeyBytes, data);
 		} else {
-			throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { keyType: vaultKey.type });
+			throw new GeneralError(EntityStorageVaultConnector.CLASS_NAME, "unsupportedKeyType", {
+				keyType: vaultKey.type
+			});
 		}
 
 		return signatureBytes;
@@ -255,62 +358,65 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	/**
 	 * Verify the signature of the data using a key in the vault.
 	 * @param name The name of the key to use for verification.
-	 * @param data The data that was signed in base64.
-	 * @param signature The signature to verify in base64.
+	 * @param data The data that was signed.
+	 * @param signature The signature to verify.
 	 * @returns True if the verification is successful.
 	 */
 	public async verify(name: string, data: Uint8Array, signature: Uint8Array): Promise<boolean> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
-		Guards.uint8Array(this.CLASS_NAME, nameof(signature), signature);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(signature), signature);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		if (vaultKey.type === VaultKeyType.Ed25519) {
 			const publicKeyBytes = Converter.base64ToBytes(vaultKey.publicKey ?? "");
 			return Ed25519.verify(publicKeyBytes, data, signature);
-		} else if (vaultKey.type === VaultKeyType.Secp256k1) {
-			const publicKeyBytes = Converter.base64ToBytes(vaultKey.publicKey ?? "");
-			return Secp256k1.verify(publicKeyBytes, data, signature);
 		}
 
-		throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { keyType: vaultKey.type });
+		throw new GeneralError(EntityStorageVaultConnector.CLASS_NAME, "unsupportedKeyType", {
+			keyType: vaultKey.type
+		});
 	}
 
 	/**
 	 * Encrypt the data using a key in the vault.
 	 * @param name The name of the key to use for encryption.
 	 * @param encryptionType The type of encryption to use.
-	 * @param data The data to encrypt in base64.
-	 * @returns The encrypted data in base64.
+	 * @param data The data to encrypt.
+	 * @returns The encrypted data.
 	 */
 	public async encrypt(
 		name: string,
 		encryptionType: VaultEncryptionType,
 		data: Uint8Array
 	): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultEncryptionType>(
-			this.CLASS_NAME,
+			EntityStorageVaultConnector.CLASS_NAME,
 			nameof(encryptionType),
 			encryptionType,
 			Object.values(VaultEncryptionType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		if (
 			encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
 			vaultKey.type !== VaultKeyType.ChaCha20Poly1305
 		) {
-			throw new GeneralError(this.CLASS_NAME, "keyTypeMismatch", {
+			throw new GeneralError(EntityStorageVaultConnector.CLASS_NAME, "keyTypeMismatch", {
 				encryptionType,
 				keyType: vaultKey.type
 			});
@@ -334,33 +440,35 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * Decrypt the data using a key in the vault.
 	 * @param name The name of the key to use for decryption.
 	 * @param encryptionType The type of encryption to use.
-	 * @param encryptedData The data to decrypt in base64.
-	 * @returns The decrypted data in base64.
+	 * @param encryptedData The data to decrypt.
+	 * @returns The decrypted data.
 	 */
 	public async decrypt(
 		name: string,
 		encryptionType: VaultEncryptionType,
 		encryptedData: Uint8Array
 	): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultEncryptionType>(
-			this.CLASS_NAME,
+			EntityStorageVaultConnector.CLASS_NAME,
 			nameof(encryptionType),
 			encryptionType,
 			Object.values(VaultEncryptionType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(encryptedData), encryptedData);
+		Guards.uint8Array(EntityStorageVaultConnector.CLASS_NAME, nameof(encryptedData), encryptedData);
 
-		const vaultKey = await this._vaultKeyEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const vaultKey = await this._vaultKeyEntityStorageConnector.get(fullKeyName);
 		if (Is.empty(vaultKey)) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "keyNotFound", name);
 		}
 
 		if (
 			encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
 			vaultKey.type !== VaultKeyType.ChaCha20Poly1305
 		) {
-			throw new GeneralError(this.CLASS_NAME, "keyTypeMismatch", {
+			throw new GeneralError(EntityStorageVaultConnector.CLASS_NAME, "keyTypeMismatch", {
 				encryptionType,
 				keyType: vaultKey.type
 			});
@@ -379,16 +487,18 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	/**
 	 * Store a secret in the vault.
 	 * @param name The name of the item in the vault to set.
-	 * @param item The item to add to the vault.
-	 * @returns Nothing.
+	 * @param data The item to add to the vault.
+	 * @returns A promise that resolves when the secret has been stored.
 	 */
-	public async setSecret<T>(name: string, item: T): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.defined(this.CLASS_NAME, nameof(item), item);
+	public async setSecret<T>(name: string, data: T): Promise<void> {
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.defined(EntityStorageVaultConnector.CLASS_NAME, nameof(data), data);
+
+		const fullKeyName = this.createKeyName(name);
 
 		const vaultSecret: VaultSecret = {
-			id: name,
-			data: item
+			id: fullKeyName,
+			data
 		};
 
 		await this._vaultSecretEntityStorageConnector.set(vaultSecret);
@@ -401,32 +511,59 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 	 * @throws Error if the item is not found.
 	 */
 	public async getSecret<T>(name: string): Promise<T> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const secret = await this._vaultSecretEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const secret = await this._vaultSecretEntityStorageConnector.get(fullKeyName);
 
 		if (Is.empty(secret)) {
-			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "secretNotFound", name);
 		}
 
 		return secret.data as T;
 	}
 
 	/**
+	 * Check if a secret exists in the vault.
+	 * @param name The name of the secret to check.
+	 * @returns True if the secret exists, false otherwise.
+	 */
+	public async secretExists(name: string): Promise<boolean> {
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
+
+		const fullKeyName = this.createKeyName(name);
+		const secret = await this._vaultSecretEntityStorageConnector.get(fullKeyName);
+		return !Is.empty(secret);
+	}
+
+	/**
 	 * Remove a secret from the vault.
 	 * @param name The name of the item in the vault to remove.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been removed.
 	 * @throws Error if the item is not found.
 	 */
 	public async removeSecret(name: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(EntityStorageVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const secret = await this._vaultSecretEntityStorageConnector.get(name);
+		const fullKeyName = this.createKeyName(name);
+
+		const secret = await this._vaultSecretEntityStorageConnector.get(fullKeyName);
 
 		if (Is.empty(secret)) {
-			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name);
+			throw new NotFoundError(EntityStorageVaultConnector.CLASS_NAME, "secretNotFound", name);
 		}
 
-		return this._vaultSecretEntityStorageConnector.remove(name);
+		return this._vaultSecretEntityStorageConnector.remove(fullKeyName);
+	}
+
+	/**
+	 * Create the key name with prefix if defined.
+	 * @param name The base name of the key.
+	 * @returns The key name with prefix if defined.
+	 * @internal
+	 */
+	private createKeyName(name: string): string {
+		return Is.stringValue(this._prefix) ? `${this._prefix}-${name}` : name;
 	}
 }

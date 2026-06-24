@@ -1,6 +1,6 @@
 # TWIN Vault Connector Entity Storage
 
-Vault connector implementation using entity storage.
+This package implements a vault connector that stores keys and secrets through an entity storage backend, enabling persisted vault workflows for services that rely on database-centric infrastructure.
 
 ## Installation
 

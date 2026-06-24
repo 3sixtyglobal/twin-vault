@@ -6,7 +6,7 @@
  */
 export interface ISignDataResponse {
 	/**
-	 * The signature of the data, formatted as "vault:v1:5IH88/dx9ulO/7ygCpYGAevL3tL7JZdcQ7wEnFf6tHrFi8QVB6SnBvtoH98MrRnWHUT7amfQbIHsU4qSyTW/Bg==".
+	 * The signature of the data, prefixed with the vault version token.
 	 */
 	signature: string;
 }

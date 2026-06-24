@@ -16,7 +16,7 @@ export interface IHashicorpVaultConnectorConfig {
 	token: string;
 
 	/**
-	 * The mount path for the KV Secrets Engine (e.g., "secret)
+	 * The mount path for the KV Secrets Engine (e.g., "secret").
 	 */
 	kvMountPath?: string;
 
@@ -39,4 +39,9 @@ export interface IHashicorpVaultConnectorConfig {
 	 * The namespace for the Hashicorp Vault if using Vault Enterprise.
 	 */
 	namespace?: string;
+
+	/**
+	 * A prefix for the keys stored in the Hashicorp Vault.
+	 */
+	prefix?: string;
 }

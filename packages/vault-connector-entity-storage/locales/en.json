@@ -5,6 +5,7 @@
 			"keyNotFound": "The key \"{notFoundId}\" was not found in the vault",
 			"secretNotFound": "The secret \"{notFoundId}\" was not found in the vault",
 			"unsupportedKeyType": "The key type \"{keyType}\" is not supported",
+			"symmetricKeyHasNoPrivateKey": "The symmetric key \"{name}\" does not have a separate private key component",
 			"keyTypeMismatch": "The key type \"{keyType}\" does not match the requested encryption method \"{encryptionType}\""
 		}
 	}

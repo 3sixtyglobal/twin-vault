@@ -3,46 +3,54 @@
 import {
 	AlreadyExistsError,
 	BaseError,
+	ComponentFactory,
 	Converter,
 	GeneralError,
 	Guards,
+	HealthStatus,
 	Is,
 	NotFoundError,
-	ObjectHelper,
 	RandomHelper,
-	StringHelper
+	StringHelper,
+	type IHealth
 } from "@twin.org/core";
 import { Ed25519 } from "@twin.org/crypto";
-import { LoggingConnectorFactory } from "@twin.org/logging-models";
+import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
-import { FetchError, FetchHelper, HttpMethod, type IHttpHeaders } from "@twin.org/web";
-import type { IBackupKeyResponse } from "./models/IBackupKeyResponse";
-import type { ICreateKeyRequest } from "./models/ICreateKeyRequest";
-import type { IDecryptDataRequest } from "./models/IDecryptDataRequest";
-import type { IDecryptDataResponse } from "./models/IDecryptDataResponse";
-import type { IEncryptDataRequest } from "./models/IEncryptDataRequest";
-import type { IEncryptDataResponse } from "./models/IEncryptDataResponse";
-import type { IExportKeyResponse } from "./models/IExportKeyResponse";
-import type { IHashicorpVaultConnectorConfig } from "./models/IHashicorpVaultConnectorConfig";
-import type { IHashicorpVaultConnectorConstructorOptions } from "./models/IHashicorpVaultConnectorConstructorOptions";
-import type { IHashicorpVaultRequest } from "./models/IHashicorpVaultRequest";
-import type { IHashicorpVaultResponse } from "./models/IHashicorpVaultResponse";
-import type { IKeyDeleteConfigResponse } from "./models/IKeyDeleteConfigResponse";
-import type { IReadKeyResponse } from "./models/IReadKeyResponse";
-import type { IRestoreKeyRequest } from "./models/IRestoreKeyRequest";
-import type { ISecretData } from "./models/ISecretData";
-import type { ISecretVersionResponse } from "./models/ISecretVersionResponse";
-import type { ISignDataRequest } from "./models/ISignDataRequest";
-import type { ISignDataResponse } from "./models/ISignDataResponse";
-import type { IUpdateKeyConfigRequest } from "./models/IUpdateKeyConfigRequest";
-import type { IVerifyDataRequest } from "./models/IVerifyDataRequest";
-import type { IVerifyDataResponse } from "./models/IVerifyDataResponse";
+import { FetchHelper, HttpMethod, type IHttpHeaders } from "@twin.org/web";
+import type { IBackupKeyResponse } from "./models/IBackupKeyResponse.js";
+import type { ICreateKeyRequest } from "./models/ICreateKeyRequest.js";
+import type { IDecryptDataRequest } from "./models/IDecryptDataRequest.js";
+import type { IDecryptDataResponse } from "./models/IDecryptDataResponse.js";
+import type { IEncryptDataRequest } from "./models/IEncryptDataRequest.js";
+import type { IEncryptDataResponse } from "./models/IEncryptDataResponse.js";
+import type { IExportKeyResponse } from "./models/IExportKeyResponse.js";
+import type { IHashicorpVaultConnectorConfig } from "./models/IHashicorpVaultConnectorConfig.js";
+import type { IHashicorpVaultConnectorConstructorOptions } from "./models/IHashicorpVaultConnectorConstructorOptions.js";
+import type { IHashicorpVaultRequest } from "./models/IHashicorpVaultRequest.js";
+import type { IHashicorpVaultResponse } from "./models/IHashicorpVaultResponse.js";
+import type { IImportKeyRequest } from "./models/IImportKeyRequest.js";
+import type { IKeyDeleteConfigResponse } from "./models/IKeyDeleteConfigResponse.js";
+import type { IReadKeyResponse } from "./models/IReadKeyResponse.js";
+import type { IRestoreKeyRequest } from "./models/IRestoreKeyRequest.js";
+import type { ISecretData } from "./models/ISecretData.js";
+import type { ISecretVersionResponse } from "./models/ISecretVersionResponse.js";
+import type { ISignDataRequest } from "./models/ISignDataRequest.js";
+import type { ISignDataResponse } from "./models/ISignDataResponse.js";
+import type { IUpdateKeyConfigRequest } from "./models/IUpdateKeyConfigRequest.js";
+import type { IVerifyDataRequest } from "./models/IVerifyDataRequest.js";
+import type { IVerifyDataResponse } from "./models/IVerifyDataResponse.js";
 
 /**
- * Class for performing vault operations in entity storage.
+ * Class for performing vault operations using HashiCorp Vault.
  */
 export class HashicorpVaultConnector implements IVaultConnector {
+	/**
+	 * Runtime name for the class.
+	 */
+	public static readonly CLASS_NAME: string = nameof<HashicorpVaultConnector>();
+
 	/**
 	 * The namespace supported by the vault connector.
 	 */
@@ -55,12 +63,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	private static readonly _DATA_PREFIX: string = "vault:v1:";
 
 	/**
-	 * Runtime name for the class.
-	 */
-	public readonly CLASS_NAME: string = nameof<HashicorpVaultConnector>();
-
-	/**
-	 * The entity storage for the vault keys.
+	 * The configuration for the vault connector.
 	 * @internal
 	 */
 	private readonly _config: IHashicorpVaultConnectorConfig;
@@ -90,18 +93,32 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	private readonly _headers: IHttpHeaders;
 
 	/**
+	 * A prefix for the keys stored in the vault.
+	 * @internal
+	 */
+	private readonly _prefix?: string;
+
+	/**
 	 * Create a new instance of HashicorpVaultConnector.
 	 * @param options The options for the vault connector.
 	 */
 	constructor(options: IHashicorpVaultConnectorConstructorOptions) {
-		Guards.object(this.CLASS_NAME, nameof(options), options);
+		Guards.object(HashicorpVaultConnector.CLASS_NAME, nameof(options), options);
 		Guards.object<IHashicorpVaultConnectorConfig>(
-			this.CLASS_NAME,
+			HashicorpVaultConnector.CLASS_NAME,
 			nameof(options.config),
 			options.config
 		);
-		Guards.stringValue(this.CLASS_NAME, nameof(options.config.endpoint), options.config.endpoint);
-		Guards.stringValue(this.CLASS_NAME, nameof(options.config.token), options.config.token);
+		Guards.stringValue(
+			HashicorpVaultConnector.CLASS_NAME,
+			nameof(options.config.endpoint),
+			options.config.endpoint
+		);
+		Guards.stringValue(
+			HashicorpVaultConnector.CLASS_NAME,
+			nameof(options.config.token),
+			options.config.token
+		);
 
 		this._config = options.config;
 		this._kvMountPath = this._config.kvMountPath ?? "secret";
@@ -110,21 +127,64 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		this._headers = {
 			"X-Vault-Token": this._config.token
 		};
+		this._prefix = this._config.prefix;
+	}
+
+	/**
+	 * Returns the class name of the component.
+	 * @returns The class name of the component.
+	 */
+	public className(): string {
+		return HashicorpVaultConnector.CLASS_NAME;
+	}
+
+	/**
+	 * Returns the health status of the component.
+	 * @returns The health status of the component, can return multiple entries for elements within the component.
+	 */
+	public async health(): Promise<IHealth[]> {
+		const endpoint = `${this._baseUrl}/sys/health`;
+		try {
+			await FetchHelper.fetch(
+				HashicorpVaultConnector.CLASS_NAME,
+				endpoint,
+				HttpMethod.GET,
+				undefined,
+				{ headers: this._headers }
+			);
+
+			return [
+				{
+					source: HashicorpVaultConnector.CLASS_NAME,
+					status: HealthStatus.Ok,
+					description: "healthDescription",
+					data: { endpoint }
+				}
+			];
+		} catch {
+			return [
+				{
+					source: HashicorpVaultConnector.CLASS_NAME,
+					status: HealthStatus.Error,
+					description: "healthDescription",
+					message: "vaultHealthCheckFailed",
+					data: { endpoint }
+				}
+			];
+		}
 	}
 
 	/**
 	 * Bootstrap the vault connector and ensure connectivity.
-	 * @param nodeLoggingConnectorType The node logging connector type, defaults to "node-logging".
+	 * @param nodeLoggingComponentType The node logging component type.
 	 * @returns True if the bootstrapping process was successful.
 	 */
-	public async bootstrap(nodeLoggingConnectorType?: string): Promise<boolean> {
-		const nodeLogging = LoggingConnectorFactory.getIfExists(
-			nodeLoggingConnectorType ?? "node-logging"
-		);
+	public async bootstrap(nodeLoggingComponentType?: string): Promise<boolean> {
+		const nodeLogging = ComponentFactory.getIfExists<ILoggingComponent>(nodeLoggingComponentType);
 
 		try {
 			await FetchHelper.fetch(
-				this.CLASS_NAME,
+				HashicorpVaultConnector.CLASS_NAME,
 				`${this._baseUrl}/sys/health`,
 				HttpMethod.GET,
 				undefined,
@@ -133,7 +193,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 
 			await nodeLogging?.log({
 				level: "info",
-				source: this.CLASS_NAME,
+				source: HashicorpVaultConnector.CLASS_NAME,
 				ts: Date.now(),
 				message: "hashicorpVaultConnected",
 				data: {
@@ -146,7 +206,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		} catch (err) {
 			await nodeLogging?.log({
 				level: "error",
-				source: this.CLASS_NAME,
+				source: HashicorpVaultConnector.CLASS_NAME,
 				ts: Date.now(),
 				message: "hashicorpVaultConnectionFailed",
 				error: BaseError.fromError(err),
@@ -163,11 +223,11 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * Store a secret in the vault.
 	 * @param name The name of the item in the vault to set.
 	 * @param data The item to add to the vault.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been stored.
 	 */
 	public async setSecret<T>(name: string, data: T): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.defined(this.CLASS_NAME, nameof(data), data);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.defined(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 
 		try {
 			const path = this.getSecretPath(name);
@@ -179,7 +239,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			};
 
 			await FetchHelper.fetchJson<IHashicorpVaultRequest<T>, unknown>(
-				this.CLASS_NAME,
+				HashicorpVaultConnector.CLASS_NAME,
 				url,
 				HttpMethod.POST,
 				payload,
@@ -188,7 +248,23 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				}
 			);
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "setSecretFailed", { name }, err);
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "setSecretFailed", { name }, err);
+		}
+	}
+
+	/**
+	 * Check if a secret exists in the vault.
+	 * @param name The name of the secret to check.
+	 * @returns True if the secret exists, false otherwise.
+	 */
+	public async secretExists(name: string): Promise<boolean> {
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+
+		try {
+			await this.getSecretVersions(name);
+			return true;
+		} catch {
+			return false;
 		}
 	}
 
@@ -199,12 +275,18 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @throws Error if the item is not found.
 	 */
 	public async getSecret<T>(name: string): Promise<T> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
 		try {
 			await this.getSecretVersions(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"secretNotFound",
+				name,
+				undefined,
+				err
+			);
 		}
 
 		try {
@@ -212,35 +294,50 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const url = `${this._baseUrl}/${path}`;
 
 			const response = await FetchHelper.fetchJson<never, IHashicorpVaultResponse<ISecretData<T>>>(
-				this.CLASS_NAME,
+				HashicorpVaultConnector.CLASS_NAME,
 				url,
 				HttpMethod.GET,
 				undefined,
 				{ headers: this._headers }
 			);
 
-			return response.data.data.secret as T;
+			return response.data.data.secret;
 		} catch (err) {
-			if (err instanceof FetchError && err.properties?.httpStatus === 404) {
-				throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, err);
+			if (
+				Is.object<{ properties?: { httpStatus?: number } }>(err) &&
+				err.properties?.httpStatus === 404
+			) {
+				throw new NotFoundError(
+					HashicorpVaultConnector.CLASS_NAME,
+					"secretNotFound",
+					name,
+					undefined,
+					err
+				);
 			}
-			throw new GeneralError(this.CLASS_NAME, "setSecretFailed", { name }, err);
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "setSecretFailed", { name }, err);
 		}
 	}
 
 	/**
 	 * Remove a secret from the vault.
 	 * @param name The name of the item in the vault to remove.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the secret has been removed.
 	 * @throws Error if the item is not found.
 	 */
 	public async removeSecret(name: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
 		try {
 			await this.getSecretVersions(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "secretNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"secretNotFound",
+				name,
+				undefined,
+				err
+			);
 		}
 
 		try {
@@ -248,14 +345,19 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const url = `${this._baseUrl}/${path}`;
 
 			await FetchHelper.fetchJson<never, IHashicorpVaultResponse<unknown>>(
-				this.CLASS_NAME,
+				HashicorpVaultConnector.CLASS_NAME,
 				url,
 				HttpMethod.DELETE,
 				undefined,
 				{ headers: this._headers }
 			);
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "removeSecretFailed", { name }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"removeSecretFailed",
+				{ name },
+				err
+			);
 		}
 	}
 
@@ -266,9 +368,9 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @returns The public key for the key pair.
 	 */
 	public async createKey(name: string, type: VaultKeyType): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultKeyType>(
-			this.CLASS_NAME,
+			HashicorpVaultConnector.CLASS_NAME,
 			nameof(type),
 			type,
 			Object.values(VaultKeyType)
@@ -281,10 +383,13 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			// Check if the key exists
 			const existingVaultKey = await this.readKey(name);
 			if (existingVaultKey) {
-				throw new AlreadyExistsError(this.CLASS_NAME, "keyAlreadyExists", name);
+				throw new AlreadyExistsError(HashicorpVaultConnector.CLASS_NAME, "keyAlreadyExists", name);
 			}
 		} catch (err) {
-			if (!(err instanceof FetchError && err.properties?.httpStatus === 404)) {
+			if (
+				!Is.object<{ properties?: { httpStatus?: number } }>(err) ||
+				err.properties?.httpStatus !== 404
+			) {
 				throw err;
 			}
 		}
@@ -292,14 +397,14 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		try {
 			const vaultKeyType = this.mapVaultKeyType(type);
 
-			const payload = {
+			const payload: ICreateKeyRequest = {
 				type: vaultKeyType,
 				exportable: true,
 				allow_plaintext_backup: true // eslint-disable-line camelcase
 			};
 
 			await FetchHelper.fetchJson<ICreateKeyRequest, IHashicorpVaultResponse<unknown>>(
-				this.CLASS_NAME,
+				HashicorpVaultConnector.CLASS_NAME,
 				url,
 				HttpMethod.POST,
 				payload,
@@ -316,10 +421,15 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const symmetricKey = await this.exportKey(name, "encryption-key");
 			return symmetricKey.key;
 		} catch (err) {
-			if (err instanceof AlreadyExistsError) {
+			if (BaseError.isErrorName(err, AlreadyExistsError.CLASS_NAME)) {
 				throw err;
 			}
-			throw new GeneralError(this.CLASS_NAME, "createdKeyFailed", { name, type }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"createKeyFailed",
+				{ name, type },
+				err
+			);
 		}
 	}
 
@@ -329,7 +439,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @param type The type of key to add.
 	 * @param privateKey The private key.
 	 * @param publicKey The public key, can be undefined if the key type is symmetric.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been stored.
 	 */
 	public async addKey(
 		name: string,
@@ -337,44 +447,56 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		privateKey: Uint8Array,
 		publicKey?: Uint8Array
 	): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultKeyType>(
-			this.CLASS_NAME,
+			HashicorpVaultConnector.CLASS_NAME,
 			nameof(type),
 			type,
 			Object.values(VaultKeyType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(privateKey), privateKey);
+		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(privateKey), privateKey);
 
 		try {
 			// Check if the key exists
 			const existingVaultKey = await this.readKey(name);
 			if (existingVaultKey) {
-				throw new AlreadyExistsError(this.CLASS_NAME, "keyAlreadyExists", name);
+				throw new AlreadyExistsError(HashicorpVaultConnector.CLASS_NAME, "keyAlreadyExists", name);
 			}
 		} catch (err) {
-			if (!(err instanceof FetchError && err.properties?.httpStatus === 404)) {
+			if (
+				!Is.object<{ properties?: { httpStatus?: number } }>(err) ||
+				err.properties?.httpStatus !== 404
+			) {
 				throw err;
 			}
 		}
 
 		try {
-			const combinedKey = new Uint8Array(privateKey.length + (publicKey?.length ?? 0));
-			combinedKey.set(privateKey);
-			if (publicKey) {
-				combinedKey.set(publicKey, privateKey.length);
-			}
-
 			const internalType = this.mapVaultKeyTypeToIndex(type);
+
+			let publicKeyForPayload: string | null = null;
+			let privateKeyForPayload: string | null = null;
+
+			if (type === VaultKeyType.Ed25519 || type === VaultKeyType.ChaCha20Poly1305) {
+				const combinedKey = new Uint8Array(privateKey.length + (publicKey?.length ?? 0));
+				combinedKey.set(privateKey);
+				if (publicKey) {
+					combinedKey.set(publicKey, privateKey.length);
+				}
+				privateKeyForPayload = Converter.bytesToBase64(combinedKey);
+				if (!Is.undefined(publicKey)) {
+					publicKeyForPayload = Converter.bytesToBase64(publicKey);
+				}
+			}
 
 			const payload = {
 				policy: {
 					name,
 					keys: {
 						"1": {
-							key: Converter.bytesToBase64(combinedKey),
+							key: privateKeyForPayload,
 							hmac_key: Converter.bytesToBase64(RandomHelper.generate(32)), // eslint-disable-line camelcase
-							public_key: Is.undefined(publicKey) ? null : Converter.bytesToBase64(publicKey) // eslint-disable-line camelcase
+							public_key: publicKeyForPayload // eslint-disable-line camelcase
 						}
 					},
 					exportable: true,
@@ -382,120 +504,219 @@ export class HashicorpVaultConnector implements IVaultConnector {
 					min_decryption_version: 1, // eslint-disable-line camelcase
 					min_encryption_version: 0, // eslint-disable-line camelcase
 					latest_version: 1, // eslint-disable-line camelcase
-					type: internalType // eslint-disable-line camelcase
+					type: internalType
 				}
 			};
 
-			const backup = Converter.bytesToBase64(ObjectHelper.toBytes(payload));
+			const json = JSON.stringify(payload);
+
+			const backup = Converter.bytesToBase64(Converter.utf8ToBytes(json));
 
 			await this.restoreKey(name, backup);
 		} catch (err) {
-			if (err instanceof AlreadyExistsError) {
+			if (BaseError.isErrorName(err, AlreadyExistsError.CLASS_NAME)) {
 				throw err;
 			}
-			throw new GeneralError(this.CLASS_NAME, "addKeyFailed", { name, type }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"addKeyFailed",
+				{ name, type },
+				err
+			);
 		}
 	}
 
 	/**
 	 * Get a key from the vault.
 	 * @param name The name of the key to get.
-	 * @returns The key, publicKey can be undefined if key is symmetric.
+	 * @param components Which key components to return, defaults to "both".
+	 * @returns The key, publicKey can be undefined if key is symmetric, privateKey can be undefined if only public was requested.
+	 * @throws GeneralError if "private" is requested for a symmetric key.
 	 */
-	public async getKey(name: string): Promise<{
+	public async getKey(
+		name: string,
+		components?: "public" | "private" | "both"
+	): Promise<{
 		/**
 		 * The type of the key e.g. Ed25519.
 		 */
 		type: VaultKeyType;
 
 		/**
-		 * The private key.
+		 * The private key, undefined if only public component was requested.
 		 */
-		privateKey: Uint8Array;
+		privateKey?: Uint8Array;
 
 		/**
-		 * The public key, which can be undefined if key type is symmetric.
+		 * The public key, which can be undefined if key type is symmetric or only private was requested.
 		 */
 		publicKey?: Uint8Array;
 	}> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+
+		components ??= "both";
+
+		Guards.arrayOneOf<"public" | "private" | "both">(
+			HashicorpVaultConnector.CLASS_NAME,
+			nameof(components),
+			components,
+			["public", "private", "both"]
+		);
 
 		let keyDetails;
 		try {
 			keyDetails = await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
+		}
+
+		const type = this.mapHashicorpKeyType(keyDetails.type);
+		const isAsymmetric = this.isAsymmetricKeyType(type);
+
+		if (!isAsymmetric && components === "private") {
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "symmetricKeyHasNoPrivateKey", {
+				name
+			});
 		}
 
 		try {
 			let publicKey: Uint8Array | undefined;
 			let privateKey: Uint8Array | undefined;
 
-			const type = this.mapHashicorpKeyType(keyDetails.type);
-			if (this.isAsymmetricKeyType(type)) {
-				const privateKeyData = await this.exportKey(name, "signing-key");
-				privateKey = privateKeyData.key;
-				const publicKeyData = await this.exportKey(name, "public-key");
-				publicKey = publicKeyData.key;
-			} else {
+			if (isAsymmetric) {
+				if (components !== "public") {
+					const privateKeyData = await this.exportKey(name, "signing-key");
+					privateKey = privateKeyData.key;
+				}
+				if (components !== "private") {
+					const publicKeyData = await this.exportKey(name, "public-key");
+					publicKey = publicKeyData.key;
+				}
+			} else if (components !== "public") {
 				const privateKeyData = await this.exportKey(name, "encryption-key");
 				privateKey = privateKeyData.key;
 			}
 
-			return {
-				type,
-				privateKey,
-				publicKey
-			};
+			return { type, privateKey, publicKey };
 		} catch (err) {
-			if (err instanceof NotFoundError) {
+			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
 				throw err;
 			}
-			throw new GeneralError(this.CLASS_NAME, "getKeyFailed", { name }, err);
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "getKeyFailed", { name }, err);
 		}
+	}
+
+	/**
+	 * Check if a key exists in the vault.
+	 * @param name The name of the key to check.
+	 * @returns True if the key exists, false otherwise.
+	 */
+	public async keyExists(name: string): Promise<boolean> {
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+
+		try {
+			await this.readKey(name);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	/**
+	 * Get the type of a key from the vault without retrieving the key material.
+	 * @param name The name of the key.
+	 * @returns The key type.
+	 * @throws NotFoundError if the key does not exist.
+	 */
+	public async getKeyType(name: string): Promise<VaultKeyType> {
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+
+		let keyDetails;
+		try {
+			keyDetails = await this.readKey(name);
+		} catch (err) {
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
+		}
+
+		return this.mapHashicorpKeyType(keyDetails.type);
 	}
 
 	/**
 	 * Rename a key in the vault.
 	 * @param name The name of the key to rename.
 	 * @param newName The new name of the key.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been renamed.
 	 */
 	public async renameKey(name: string, newName: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.stringValue(this.CLASS_NAME, nameof(newName), newName);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(newName), newName);
 
 		try {
-			let existingVaultKey;
-			try {
-				existingVaultKey = await this.readKey(newName);
-			} catch {
-				// If we have an error we just continue as it means the key does not exist
-			}
-			if (existingVaultKey) {
-				throw new AlreadyExistsError(this.CLASS_NAME, "keyAlreadyExists", newName);
-			}
+			await this.readKey(name);
+		} catch (err) {
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
+		}
 
+		let existingVaultKey;
+		try {
+			existingVaultKey = await this.readKey(newName);
+		} catch {
+			// key does not exist, which is what we want
+		}
+		if (existingVaultKey) {
+			throw new AlreadyExistsError(HashicorpVaultConnector.CLASS_NAME, "keyAlreadyExists", newName);
+		}
+
+		try {
 			const backup = await this.backupKey(name);
 			await this.restoreKey(newName, backup);
 			await this.removeKey(name);
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "renameKeyFailed", { name, newName }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"renameKeyFailed",
+				{ name, newName },
+				err
+			);
 		}
 	}
 
 	/**
 	 * Remove a key from the vault.
 	 * @param name The name of the key to remove.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key has been removed.
 	 */
 	public async removeKey(name: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
 		try {
 			await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
 		}
 
 		try {
@@ -504,11 +725,17 @@ export class HashicorpVaultConnector implements IVaultConnector {
 
 			await this.updateKeyConfig(name, true);
 
-			await FetchHelper.fetch(this.CLASS_NAME, url, HttpMethod.DELETE, undefined, {
-				headers: this._headers
-			});
+			await FetchHelper.fetch(
+				HashicorpVaultConnector.CLASS_NAME,
+				url,
+				HttpMethod.DELETE,
+				undefined,
+				{
+					headers: this._headers
+				}
+			);
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "removeKeyFailed", { name }, err);
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "removeKeyFailed", { name }, err);
 		}
 	}
 
@@ -519,13 +746,19 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @returns The signature.
 	 */
 	public async sign(name: string, data: Uint8Array): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 
 		try {
 			await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
 		}
 
 		try {
@@ -541,7 +774,9 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				ISignDataRequest,
 				IHashicorpVaultResponse<ISignDataResponse>
-			>(this.CLASS_NAME, url, HttpMethod.POST, payload, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, {
+				headers: this._headers
+			});
 
 			if (response?.data?.signature) {
 				const signatureString = response.data.signature;
@@ -553,9 +788,9 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				const signatureBytes = Converter.base64ToBytes(cleanedSignature);
 				return signatureBytes;
 			}
-			throw new GeneralError(this.CLASS_NAME, "invalidSignResponse", { name });
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "invalidSignResponse", { name });
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "signDataFailed", { name }, err);
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "signDataFailed", { name }, err);
 		}
 	}
 
@@ -567,14 +802,20 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @returns True if the signature is valid.
 	 */
 	public async verify(name: string, data: Uint8Array, signature: Uint8Array): Promise<boolean> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
-		Guards.uint8Array(this.CLASS_NAME, nameof(signature), signature);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
+		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(signature), signature);
 
 		try {
 			await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
 		}
 
 		try {
@@ -594,7 +835,9 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				IVerifyDataRequest,
 				IHashicorpVaultResponse<IVerifyDataResponse>
-			>(this.CLASS_NAME, url, HttpMethod.POST, payload, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, {
+				headers: this._headers
+			});
 
 			if (response?.data?.valid) {
 				return response.data.valid;
@@ -602,7 +845,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 
 			return false;
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "verifyDataFailed", { name }, err);
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "verifyDataFailed", { name }, err);
 		}
 	}
 
@@ -618,20 +861,26 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		encryptionType: VaultEncryptionType,
 		data: Uint8Array
 	): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultEncryptionType>(
-			this.CLASS_NAME,
+			HashicorpVaultConnector.CLASS_NAME,
 			nameof(encryptionType),
 			encryptionType,
 			Object.values(VaultEncryptionType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(data), data);
+		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 
 		let keyDetails;
 		try {
 			keyDetails = await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
 		}
 
 		try {
@@ -639,13 +888,19 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
 				keyDetails.type !== this.mapVaultKeyType(VaultKeyType.ChaCha20Poly1305)
 			) {
-				throw new GeneralError(this.CLASS_NAME, "keyTypeMismatch", {
+				throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "keyTypeMismatch", {
 					encryptionType,
 					keyType: keyDetails.type
 				});
 			}
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
 		}
 
 		try {
@@ -659,7 +914,9 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				IEncryptDataRequest,
 				IHashicorpVaultResponse<IEncryptDataResponse>
-			>(this.CLASS_NAME, url, HttpMethod.POST, payload, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, {
+				headers: this._headers
+			});
 
 			if (response?.data?.ciphertext) {
 				const { ciphertext } = response.data;
@@ -670,9 +927,17 @@ export class HashicorpVaultConnector implements IVaultConnector {
 
 				return Converter.base64ToBytes(cleanedCiphertext);
 			}
-			throw new GeneralError(this.CLASS_NAME, "invalidEncryptResponse", { name, encryptionType });
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "invalidEncryptResponse", {
+				name,
+				encryptionType
+			});
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "encryptDataFailed", { name, encryptionType }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"encryptDataFailed",
+				{ name, encryptionType },
+				err
+			);
 		}
 	}
 
@@ -688,19 +953,25 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		encryptionType: VaultEncryptionType,
 		encryptedData: Uint8Array
 	): Promise<Uint8Array> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.arrayOneOf<VaultEncryptionType>(
-			this.CLASS_NAME,
+			HashicorpVaultConnector.CLASS_NAME,
 			nameof(encryptionType),
 			encryptionType,
 			Object.values(VaultEncryptionType)
 		);
-		Guards.uint8Array(this.CLASS_NAME, nameof(encryptedData), encryptedData);
+		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(encryptedData), encryptedData);
 
 		try {
 			await this.readKey(name);
 		} catch (err) {
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name, err);
+			throw new NotFoundError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"keyNotFound",
+				name,
+				undefined,
+				err
+			);
 		}
 
 		try {
@@ -716,16 +987,26 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				IDecryptDataRequest,
 				IHashicorpVaultResponse<IDecryptDataResponse>
-			>(this.CLASS_NAME, url, HttpMethod.POST, payload, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, {
+				headers: this._headers
+			});
 
 			if (response?.data?.plaintext) {
 				const { plaintext } = response.data;
 				return Converter.base64ToBytes(plaintext);
 			}
 
-			throw new GeneralError(this.CLASS_NAME, "decryptDataFailed", { name, encryptionType });
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "invalidDecryptResponse", {
+				name,
+				encryptionType
+			});
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "decryptDataFailed", { name, encryptionType }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"decryptDataFailed",
+				{ name, encryptionType },
+				err
+			);
 		}
 	}
 
@@ -736,13 +1017,18 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @throws Error if the secret is not found.
 	 */
 	public async getSecretVersions(name: string): Promise<number[]> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
 		try {
 			const versions = await this.fetchSecretVersions(name);
 			return versions;
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "getSecretVersionsFailed", { name }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"getSecretVersionsFailed",
+				{ name },
+				err
+			);
 		}
 	}
 
@@ -751,14 +1037,14 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @param name The name of the key to update.
 	 * @param deletionAllowed Whether the key can be deleted.
 	 * @param exportable Whether the key can be exported.
-	 * @returns Nothing.
+	 * @returns A promise that resolves when the key configuration has been updated.
 	 */
 	public async updateKeyConfig(
 		name: string,
 		deletionAllowed?: boolean,
 		exportable?: boolean
 	): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
 		try {
 			const path = this.getTransitKeyConfigPath(name);
@@ -770,25 +1056,30 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			};
 
 			await FetchHelper.fetchJson<IUpdateKeyConfigRequest, IHashicorpVaultResponse<unknown>>(
-				this.CLASS_NAME,
+				HashicorpVaultConnector.CLASS_NAME,
 				url,
 				HttpMethod.POST,
 				payload,
 				{ headers: this._headers }
 			);
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "updateKeyConfigFailed", { name }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"updateKeyConfigFailed",
+				{ name },
+				err
+			);
 		}
 	}
 
 	/**
 	 * Backup a key from the vault.
 	 * @param name The name of the key to backup.
-	 * @returns The private key as a Uint8Array.
+	 * @returns The Base64-encoded backup payload.
 	 * @throws Error if the key cannot be exported or found.
 	 */
 	public async backupKey(name: string): Promise<string> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
 		const path = this.getTransitBackupKeyPath(name);
 		const url = `${this._baseUrl}/${path}`;
@@ -797,32 +1088,34 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<IBackupKeyResponse>
-			>(this.CLASS_NAME, url, HttpMethod.GET, undefined, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
+				headers: this._headers
+			});
 
 			if (response?.data?.backup) {
 				const backup = response.data.backup;
 				return backup;
 			}
 
-			throw new NotFoundError(this.CLASS_NAME, "backupKeyNotFound", name);
+			throw new NotFoundError(HashicorpVaultConnector.CLASS_NAME, "backupKeyNotFound", name);
 		} catch (err) {
-			if (err instanceof NotFoundError) {
+			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
 				throw err;
 			}
-			throw new GeneralError(this.CLASS_NAME, "backupKeyFailed", { name }, err);
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "backupKeyFailed", { name }, err);
 		}
 	}
 
 	/**
 	 * Restore a key to the vault.
 	 * @param name The name of the key to restore.
-	 * @param backup The backup of the key.
-	 * @returns Nothing.
+	 * @param backup The Base64-encoded backup payload.
+	 * @returns A promise that resolves when the key has been restored.
 	 * @throws Error if the key cannot be restored.
 	 */
 	public async restoreKey(name: string, backup: string): Promise<void> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
-		Guards.stringValue(this.CLASS_NAME, nameof(backup), backup);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(backup), backup);
 
 		const path = this.getTransitRestoreKeyPath(name);
 		const url = `${this._baseUrl}/${path}`;
@@ -831,14 +1124,50 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const payload = { backup };
 
 			await FetchHelper.fetchJson<IRestoreKeyRequest, IHashicorpVaultResponse<unknown>>(
-				this.CLASS_NAME,
+				HashicorpVaultConnector.CLASS_NAME,
 				url,
 				HttpMethod.POST,
 				payload,
 				{ headers: this._headers }
 			);
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "restoreKeyFailed", { name }, err);
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "restoreKeyFailed", { name }, err);
+		}
+	}
+
+	/**
+	 * Import a key to the vault.
+	 * @param name The name of the key to import.
+	 * @param type The type of key to import, e.g. "ed25519".
+	 * @param privateKeyPem The PEM bundle of the key to import.
+	 * @returns A promise that resolves when the key has been imported.
+	 * @throws Error if the key cannot be imported.
+	 */
+	public async importKey(name: string, type: string, privateKeyPem: string): Promise<void> {
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(privateKeyPem), privateKeyPem);
+
+		const path = this.getTransitImportKeyPath(name);
+		const url = `${this._baseUrl}/${path}`;
+
+		try {
+			const payload = {
+				type,
+				key: Converter.bytesToBase58(Converter.utf8ToBytes(privateKeyPem)),
+				exportable: true,
+				// eslint-disable-next-line camelcase
+				allow_plaintext_backup: true
+			};
+
+			await FetchHelper.fetchJson<IImportKeyRequest, IHashicorpVaultResponse<unknown>>(
+				HashicorpVaultConnector.CLASS_NAME,
+				url,
+				HttpMethod.POST,
+				payload,
+				{ headers: this._headers }
+			);
+		} catch (err) {
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "importKeyFailed", { name }, err);
 		}
 	}
 
@@ -870,7 +1199,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		 */
 		name: string;
 	}> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		const versionPath = version ? `${version}` : "latest";
 
 		const path = this.getTransitExportKeyPath(name, keyPath);
@@ -880,7 +1209,9 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<IExportKeyResponse>
-			>(this.CLASS_NAME, url, HttpMethod.GET, undefined, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
+				headers: this._headers
+			});
 
 			if (response?.data) {
 				const { keys, type } = response.data;
@@ -907,12 +1238,17 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				return keyData;
 			}
 
-			throw new NotFoundError(this.CLASS_NAME, "exportKeyNotFound", name);
+			throw new NotFoundError(HashicorpVaultConnector.CLASS_NAME, "exportKeyNotFound", name);
 		} catch (err) {
-			if (err instanceof NotFoundError) {
+			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
 				throw err;
 			}
-			throw new GeneralError(this.CLASS_NAME, "exportKeyFailed", { name, keyPath }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"exportKeyFailed",
+				{ name, keyPath },
+				err
+			);
 		}
 	}
 
@@ -922,7 +1258,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @returns True if the key can be deleted.
 	 */
 	public async getKeyDeleteConfiguration(name: string): Promise<boolean> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		const path = this.getTransitKeyPath(name);
 		const url = `${this._baseUrl}/${path}`;
 
@@ -930,11 +1266,18 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<IKeyDeleteConfigResponse>
-			>(this.CLASS_NAME, url, HttpMethod.GET, undefined, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
+				headers: this._headers
+			});
 
 			return response.data.deletion_allowed;
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "getKeyDeleteConfigurationFailed", { name }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"getKeyDeleteConfigurationFailed",
+				{ name },
+				err
+			);
 		}
 	}
 
@@ -945,7 +1288,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @internal
 	 */
 	private async readKey(name: string): Promise<IReadKeyResponse> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
 		const path = this.getTransitKeyPath(name);
 		const url = `${this._baseUrl}/${path}`;
@@ -954,19 +1297,28 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<IReadKeyResponse>
-			>(this.CLASS_NAME, url, HttpMethod.GET, undefined, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
+				headers: this._headers
+			});
 
 			if (response?.data?.name) {
 				const keyName = response.data.name;
 				return { name: keyName, type: response.data.type };
 			}
-			throw new NotFoundError(this.CLASS_NAME, "keyNotFound", name);
+			throw new NotFoundError(HashicorpVaultConnector.CLASS_NAME, "keyNotFound", name);
 		} catch (err) {
-			if (err instanceof FetchError && err.properties?.httpStatus === 404) {
+			if (
+				Is.object<{ properties?: { httpStatus?: number } }>(err) &&
+				err.properties?.httpStatus === 404
+			) {
 				throw err;
-			} else {
-				throw new GeneralError(this.CLASS_NAME, "invalidReadKeyResponse", { name }, err);
 			}
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"invalidReadKeyResponse",
+				{ name },
+				err
+			);
 		}
 	}
 
@@ -984,7 +1336,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			case VaultKeyType.ChaCha20Poly1305:
 				return "chacha20-poly1305";
 			default:
-				throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { type });
+				throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "unsupportedKeyType", { type });
 		}
 	}
 
@@ -1003,7 +1355,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			case VaultKeyType.ChaCha20Poly1305:
 				return 5;
 			default:
-				throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { type });
+				throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "unsupportedKeyType", { type });
 		}
 	}
 
@@ -1021,7 +1373,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			case "chacha20-poly1305":
 				return VaultKeyType.ChaCha20Poly1305;
 			default:
-				throw new GeneralError(this.CLASS_NAME, "unsupportedKeyType", { type });
+				throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "unsupportedKeyType", { type });
 		}
 	}
 
@@ -1029,11 +1381,11 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * Check if the key type is asymmetric.
 	 * @param type The key type.
 	 * @returns True if the key type is asymmetric.
+	 * @internal
 	 */
 	private isAsymmetricKeyType(type: VaultKeyType): boolean {
 		switch (type) {
 			case VaultKeyType.Ed25519:
-			case VaultKeyType.Secp256k1:
 				return true;
 			default:
 				return false;
@@ -1048,7 +1400,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @internal
 	 */
 	private async fetchSecretVersions(name: string): Promise<number[]> {
-		Guards.stringValue(this.CLASS_NAME, nameof(name), name);
+		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
 		try {
 			const path = this.getSecretMetadataPath(name);
@@ -1057,15 +1409,22 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<ISecretVersionResponse>
-			>(this.CLASS_NAME, url, HttpMethod.GET, undefined, { headers: this._headers });
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
+				headers: this._headers
+			});
 
 			if (response?.data?.versions) {
 				const versions = Object.keys(response.data.versions).map(Number);
 				return versions;
 			}
-			throw new NotFoundError(this.CLASS_NAME, "versionsNotFound", name);
+			throw new NotFoundError(HashicorpVaultConnector.CLASS_NAME, "versionsNotFound", name);
 		} catch (err) {
-			throw new GeneralError(this.CLASS_NAME, "getSecretVersionsFailed", { name }, err);
+			throw new GeneralError(
+				HashicorpVaultConnector.CLASS_NAME,
+				"getSecretVersionsFailed",
+				{ name },
+				err
+			);
 		}
 	}
 
@@ -1076,7 +1435,11 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	 * @internal
 	 */
 	private getEncodedName(name: string): string {
-		return name.replace(/[^\dA-Za-z-]/g, "_").replace(/[_-]+$/, "");
+		const safeName = name.replace(/[^\dA-Za-z-]/g, "_").replace(/[_-]+$/, "");
+
+		return Is.stringValue(this._prefix)
+			? `${encodeURIComponent(this._prefix)}_${safeName}`
+			: safeName;
 	}
 
 	/**
@@ -1151,6 +1514,16 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	}
 
 	/**
+	 * Get the path for importing a Transit key.
+	 * @param name The name of the key.
+	 * @returns The path for the import key.
+	 * @internal
+	 */
+	private getTransitImportKeyPath(name: string): string {
+		return `${this._transitMountPath}/keys/${this.getEncodedName(name)}/import`;
+	}
+
+	/**
 	 * Get the path for signing data with a Transit key.
 	 * @param name The name of the key.
 	 * @returns The path for the sign.
@@ -1171,7 +1544,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	}
 
 	/**
-	 * Get the  path for encrypting data with a Transit key.
+	 * Get the path for encrypting data with a Transit key.
 	 * @param name The name of the key.
 	 * @returns The path for encryption.
 	 * @internal
@@ -1181,7 +1554,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	}
 
 	/**
-	 * Get the  path for decrypting data with a Transit key.
+	 * Get the path for decrypting data with a Transit key.
 	 * @param name The name of the key.
 	 * @returns The path for decryption.
 	 * @internal

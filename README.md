@@ -1,12 +1,14 @@
 # TWIN Vault
 
-This mono-repository contains the packages to use with Vaults in TWIN applications.
+This repository provides a focused set of vault components that help teams implement key management, encryption, signing, and secret handling with a consistent integration approach across services. The packages are designed to reduce repeated implementation work by combining shared contracts with connector specific behaviour in a way that remains predictable for both local development and production operations.
+
+Together, these components support a clean boundary between application logic and vault infrastructure, making it easier to adopt secure workflows, swap connector implementations when needed, and maintain reliable behaviour across environments as systems evolve.
 
 ## Packages
 
-- [vault-models](packages/vault-models/README.md) - Models which define the structure of the vault contracts and connectors.
-- [vault-connector-entity-storage](packages/vault-connector-entity-storage/README.md) - Vault connector implementation using entity storage.
-- [vault-connector-hashicorp](packages/vault-connector-hashicorp/README.md) - Vault connector implementation using Hashicorp.
+- [vault-models](packages/vault-models/README.md) - Shared models and factory utilities for consistent vault connector integration
+- [vault-connector-entity-storage](packages/vault-connector-entity-storage/README.md) - Entity storage backed connector for persisted vault key and secret workflows
+- [vault-connector-hashicorp](packages/vault-connector-hashicorp/README.md) - HashiCorp Vault connector for transit cryptography and KV secret workflows
 
 ## Contributing
 

@@ -11,7 +11,7 @@ export interface IVerifyDataRequest {
 	input: string;
 
 	/**
-	 * The signature to be verified, formatted as "vault:v1:5IH88/dx9ulO/7ygCpYGAevL3tL7JZdcQ7wEnFf6tHrFi8QVB6SnBvtoH98MrRnWHUT7amfQbIHsU4qSyTW/Bg==".
+	 * The signature to be verified, prefixed with the vault version token.
 	 */
 	signature: string;
 }

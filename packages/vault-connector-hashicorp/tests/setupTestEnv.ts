@@ -3,10 +3,13 @@
 import path from "node:path";
 import { Guards } from "@twin.org/core";
 import * as dotenv from "dotenv";
-import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector";
-import type { IHashicorpVaultConnectorConfig } from "../src/models/IHashicorpVaultConnectorConfig";
+import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
+import type { IHashicorpVaultConnectorConfig } from "../src/models/IHashicorpVaultConnectorConfig.js";
 
-dotenv.config({ path: [path.join(__dirname, ".env"), path.join(__dirname, ".env.dev")] });
+dotenv.config({
+	path: [path.join(__dirname, ".env"), path.join(__dirname, ".env.dev")],
+	quiet: true
+});
 
 console.debug("Setting up test environment from .env and .env.dev files");
 
@@ -23,6 +26,31 @@ export const TEST_VAULT_CONFIG: IHashicorpVaultConnectorConfig = {
 	transitMountPath: process.env.VAULT_TRANSIT_MOUNT_PATH ?? "transit",
 	apiVersion: process.env.VAULT_API_VERSION ?? "v1"
 };
+
+const apiVersion = TEST_VAULT_CONFIG.apiVersion ?? "v1";
+const baseUrl = `${TEST_VAULT_CONFIG.endpoint}/${apiVersion}`;
+const vaultHeaders = {
+	"X-Vault-Token": TEST_VAULT_CONFIG.token,
+	"Content-Type": "application/json"
+};
+
+async function enableTransitBackend(): Promise<void> {
+	const transitMountPath = TEST_VAULT_CONFIG.transitMountPath ?? "transit";
+	try {
+		const response = await fetch(`${baseUrl}/sys/mounts/${transitMountPath}`, {
+			method: "POST",
+			headers: vaultHeaders,
+			body: JSON.stringify({ type: "transit" })
+		});
+		if (!response.ok && response.status !== 400) {
+			console.warn(`Failed to enable transit backend: ${response.status}`);
+		}
+	} catch (err) {
+		console.warn("Failed to enable transit backend:", err);
+	}
+}
+
+await enableTransitBackend();
 
 /**
  * Cleans up the secrets from the vault.
