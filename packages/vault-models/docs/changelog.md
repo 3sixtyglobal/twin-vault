@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.9.1-next.1](https://github.com/iotaledger/twin-vault/compare/vault-models-v0.9.1-next.0...vault-models-v0.9.1-next.1) (2026-06-26)
+
+
+### Features
+
+* add context id features ([#38](https://github.com/iotaledger/twin-vault/issues/38)) ([a65e217](https://github.com/iotaledger/twin-vault/commit/a65e217a6b4ea8ce25842643056aff045c3009d7))
+* add RSA support ([9342124](https://github.com/iotaledger/twin-vault/commit/93421240da5fd9fd9354884a104dc417bb2e9106))
+* add validate-locales ([a3485e8](https://github.com/iotaledger/twin-vault/commit/a3485e85e6f9021e59fca697d73e966add283dbd))
+* added get type method ([#43](https://github.com/iotaledger/twin-vault/issues/43)) ([b3ba41d](https://github.com/iotaledger/twin-vault/commit/b3ba41db7829117be7b79af33957da7476d0b81f))
+* eslint migration to flat config ([66415a8](https://github.com/iotaledger/twin-vault/commit/66415a87caded04bcaefa853fe134cb54b3d0d99))
+* getKey components param ([#54](https://github.com/iotaledger/twin-vault/issues/54)) ([587c3ca](https://github.com/iotaledger/twin-vault/commit/587c3ca7c251c6bab761aa29223b01d58fcbdf9c))
+* Hashicorp Vault connector storage ([#18](https://github.com/iotaledger/twin-vault/issues/18)) ([b721bf0](https://github.com/iotaledger/twin-vault/commit/b721bf0fab63914abc45213fda001de8550521eb))
+* typescript 6 update ([bbf552c](https://github.com/iotaledger/twin-vault/commit/bbf552cbbb6d6231d718f0c0fb55dd6a25bb41b7))
+* update dependencies ([9689003](https://github.com/iotaledger/twin-vault/commit/96890034f0992f76d1efc9c59a6ce23d4c958c5e))
+* update dependencies ([2de56e0](https://github.com/iotaledger/twin-vault/commit/2de56e06a662bd3eab83ee8e517d5ab327caaa9b))
+* update framework core ([00d0dc0](https://github.com/iotaledger/twin-vault/commit/00d0dc0d9a23fd6cb8a006723cdaeffbf6c93f91))
+* use shared store mechanism ([#22](https://github.com/iotaledger/twin-vault/issues/22)) ([03e0056](https://github.com/iotaledger/twin-vault/commit/03e0056600390272610f7afc2342163fe7de540d))
+
 ## [0.9.0](https://github.com/iotaledger/twin-vault/compare/vault-models-v0.9.0...vault-models-v0.9.0) (2026-06-24)
 
 
