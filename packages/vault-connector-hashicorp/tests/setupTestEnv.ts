@@ -7,7 +7,7 @@ import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
 import type { IHashicorpVaultConnectorConfig } from "../src/models/IHashicorpVaultConnectorConfig.js";
 
 dotenv.config({
-	path: [path.join(__dirname, ".env"), path.join(__dirname, ".env.dev")],
+	path: [path.join(__dirname, ".env.dev"), path.join(__dirname, ".env")],
 	quiet: true
 });
 
