@@ -1,5 +1,5 @@
 {
-	"packages/vault-models": "0.9.1-next.1",
-	"packages/vault-connector-entity-storage": "0.9.1-next.1",
-	"packages/vault-connector-hashicorp": "0.9.1-next.1"
+	"packages/vault-models": "0.9.2-next.0",
+	"packages/vault-connector-entity-storage": "0.9.2-next.0",
+	"packages/vault-connector-hashicorp": "0.9.2-next.0"
 }
