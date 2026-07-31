@@ -33,7 +33,7 @@ export interface IHashicorpVaultConnectorConfig {
 	/**
 	 * The request timeout in milliseconds.
 	 */
-	timeout?: number;
+	timeoutMs?: number;
 
 	/**
 	 * The namespace for the Hashicorp Vault if using Vault Enterprise.
