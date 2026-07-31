@@ -18,15 +18,8 @@
 		"**/wordlists/**",
 		"changelog.md"
 	],
-	"words": [
-		"abbrev",
-		"autorelease",
-		"chacha",
+	"words": ["abbrev", "autorelease", "chacha", "nameof", "qinv", "Stiftung"],
 		"hotfixes",
-		"nameof",
-		"qinv",
-		"Stiftung"
-	],
 	"ignoreRegExpList": [
 		"/from\\s+(['\"]).*\\1/",
 		"/eslint-disable.*/",
