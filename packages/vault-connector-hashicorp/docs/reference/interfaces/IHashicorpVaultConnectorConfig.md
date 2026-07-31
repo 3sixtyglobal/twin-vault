@@ -44,9 +44,9 @@ The version of the Hashicorp Vault API (e.g., "v1").
 
 ***
 
-### timeout? {#timeout}
+### timeoutMs? {#timeoutms}
 
-> `optional` **timeout?**: `number`
+> `optional` **timeoutMs?**: `number`
 
 The request timeout in milliseconds.
 
