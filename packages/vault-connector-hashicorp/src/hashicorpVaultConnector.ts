@@ -1,18 +1,22 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import {
+	HealthCategory,
+	HealthStatus,
+	type IHealth,
+	type IHealthProviderComponent
+} from "@twin.org/api-models";
+import {
 	AlreadyExistsError,
 	BaseError,
 	ComponentFactory,
 	Converter,
 	GeneralError,
 	Guards,
-	HealthStatus,
 	Is,
 	NotFoundError,
 	RandomHelper,
-	StringHelper,
-	type IHealth
+	StringHelper
 } from "@twin.org/core";
 import { Ed25519 } from "@twin.org/crypto";
 import type { ILoggingComponent } from "@twin.org/logging-models";
@@ -45,7 +49,7 @@ import type { IVerifyDataResponse } from "./models/IVerifyDataResponse.js";
 /**
  * Class for performing vault operations using HashiCorp Vault.
  */
-export class HashicorpVaultConnector implements IVaultConnector {
+export class HashicorpVaultConnector implements IVaultConnector, IHealthProviderComponent {
 	/**
 	 * Runtime name for the class.
 	 */
@@ -147,9 +151,10 @@ export class HashicorpVaultConnector implements IVaultConnector {
 
 	/**
 	 * Returns the health status of the component.
-	 * @returns The health status of the component, can return multiple entries for elements within the component.
+	 * @param lastTimestamp The Unix timestamp (ms) recorded at the start of the previous cycle.
+	 * @returns The health status of the component.
 	 */
-	public async health(): Promise<IHealth[]> {
+	public async health(lastTimestamp: number): Promise<IHealth[]> {
 		const endpoint = `${this._baseUrl}/sys/health`;
 		try {
 			await FetchHelper.fetch(
@@ -163,6 +168,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			return [
 				{
 					source: HashicorpVaultConnector.CLASS_NAME,
+					category: HealthCategory.Connectivity,
 					status: HealthStatus.Ok,
 					description: "healthDescription",
 					data: { endpoint }
@@ -172,6 +178,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			return [
 				{
 					source: HashicorpVaultConnector.CLASS_NAME,
+					category: HealthCategory.Connectivity,
 					status: HealthStatus.Error,
 					description: "healthDescription",
 					message: "vaultHealthCheckFailed",
@@ -204,8 +211,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				ts: Date.now(),
 				message: "hashicorpVaultConnected",
 				data: {
-					address: this._config.endpoint,
-					token: this._config.token
+					address: this._config.endpoint
 				}
 			});
 
@@ -218,8 +224,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				message: "hashicorpVaultConnectionFailed",
 				error: BaseError.fromError(err),
 				data: {
-					address: this._config.endpoint,
-					token: this._config.token
+					address: this._config.endpoint
 				}
 			});
 			return false;

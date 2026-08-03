@@ -31,6 +31,7 @@
 		"dist:no-test": "npm run clean && npm run build && npm run test:build"
 	},
 	"dependencies": {
+		"@twin.org/api-models": "next",
 		"@twin.org/core": "next",
 		"@twin.org/crypto": "next",
 		"@twin.org/entity": "next",
