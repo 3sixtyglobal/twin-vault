@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.2-next.2](https://github.com/iotaledger/twin-vault/compare/vault-connector-hashicorp-v0.9.2-next.1...vault-connector-hashicorp-v0.9.2-next.2) (2026-08-03)
+
+
+### Features
+
+* update health signatures ([#73](https://github.com/iotaledger/twin-vault/issues/73)) ([df87e12](https://github.com/iotaledger/twin-vault/commit/df87e12d7a50fdfd4af66aa2756a7f51abb525ec))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.9.2-next.1 to 0.9.2-next.2
+
 ## [0.9.2-next.1](https://github.com/iotaledger/twin-vault/compare/vault-connector-hashicorp-v0.9.2-next.0...vault-connector-hashicorp-v0.9.2-next.1) (2026-07-31)
 
 
