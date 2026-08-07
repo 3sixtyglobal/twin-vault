@@ -29,7 +29,7 @@ describe("HashicorpVaultConnector (extended)", () => {
 	});
 
 	test("can get health status when vault is available", async () => {
-		const health = await vaultConnector.health(0);
+		const health = await vaultConnector.health();
 		expect(Array.isArray(health)).toBe(true);
 		expect(health.length).toBeGreaterThan(0);
 		expect(health[0].source).toEqual("HashicorpVaultConnector");
@@ -41,7 +41,7 @@ describe("HashicorpVaultConnector (extended)", () => {
 		const invalidConnector = new HashicorpVaultConnector({
 			config: { endpoint: "http://invalid-vault:8200", token: "invalid-token", apiVersion: "v1" }
 		});
-		const health = await invalidConnector.health(0);
+		const health = await invalidConnector.health();
 		expect(health[0].source).toEqual("HashicorpVaultConnector");
 		expect(health[0].status).toEqual(HealthStatus.Error);
 		expect(health[0].description).toEqual("healthDescription");
