@@ -1,6 +1,6 @@
 {
 	"name": "@twin.org/vault-models",
-	"version": "0.9.2-next.2",
+	"version": "0.9.2-next.3",
 	"description": "Shared models and factory utilities for consistent vault connector integration",
 	"repository": {
 		"type": "git",
