@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.2](https://github.com/iotaledger/twin-vault/compare/vault-connector-entity-storage-v0.9.2...vault-connector-entity-storage-v0.9.2) (2026-08-24)
+
+
+### Features
+
+* release to production ([b33df71](https://github.com/iotaledger/twin-vault/commit/b33df712566e120ae0c103261ea6a8ad716dde37))
+* release to production ([#61](https://github.com/iotaledger/twin-vault/issues/61)) ([67643d8](https://github.com/iotaledger/twin-vault/commit/67643d810af539ca58072b61a6f4fdd0c0fee57a))
+* release to production ([#67](https://github.com/iotaledger/twin-vault/issues/67)) ([3a6a071](https://github.com/iotaledger/twin-vault/commit/3a6a0711ccb3d8faaf48b0621c7837b120b5bc07))
+* release to production ([#80](https://github.com/iotaledger/twin-vault/issues/80)) ([56873c2](https://github.com/iotaledger/twin-vault/commit/56873c2b322aab377fe1319a92df8156713a8186))
+* update dependencies ([2de56e0](https://github.com/iotaledger/twin-vault/commit/2de56e06a662bd3eab83ee8e517d5ab327caaa9b))
+* use shared store mechanism ([#22](https://github.com/iotaledger/twin-vault/issues/22)) ([03e0056](https://github.com/iotaledger/twin-vault/commit/03e0056600390272610f7afc2342163fe7de540d))
+
 ## [0.9.2-next.3](https://github.com/iotaledger/twin-vault/compare/vault-connector-entity-storage-v0.9.2-next.2...vault-connector-entity-storage-v0.9.2-next.3) (2026-08-07)
 
 
