@@ -3,7 +3,8 @@
 // Tests for HashicorpVaultConnector-specific functionality not present in the shared
 // IVaultConnector interface: health checks, exportKey, backupKey, restoreKey,
 // updateKeyConfig, getKeyDeleteConfiguration, getSecretVersions.
-import { Converter, HealthStatus } from "@twin.org/core";
+import { HealthStatus } from "@twin.org/api-models";
+import { Converter } from "@twin.org/core";
 import { Ed25519 } from "@twin.org/crypto";
 import { VaultKeyType } from "@twin.org/vault-models";
 import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv.js";

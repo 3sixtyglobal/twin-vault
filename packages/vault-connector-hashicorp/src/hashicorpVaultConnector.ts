@@ -1,18 +1,22 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import {
+	HealthCategory,
+	HealthStatus,
+	type IHealth,
+	type IHealthProviderComponent
+} from "@twin.org/api-models";
+import {
 	AlreadyExistsError,
 	BaseError,
 	ComponentFactory,
 	Converter,
 	GeneralError,
 	Guards,
-	HealthStatus,
 	Is,
 	NotFoundError,
 	RandomHelper,
-	StringHelper,
-	type IHealth
+	StringHelper
 } from "@twin.org/core";
 import { Ed25519 } from "@twin.org/crypto";
 import type { ILoggingComponent } from "@twin.org/logging-models";
@@ -45,7 +49,7 @@ import type { IVerifyDataResponse } from "./models/IVerifyDataResponse.js";
 /**
  * Class for performing vault operations using HashiCorp Vault.
  */
-export class HashicorpVaultConnector implements IVaultConnector {
+export class HashicorpVaultConnector implements IVaultConnector, IHealthProviderComponent {
 	/**
 	 * Runtime name for the class.
 	 */
@@ -87,10 +91,10 @@ export class HashicorpVaultConnector implements IVaultConnector {
 	private readonly _baseUrl: string;
 
 	/**
-	 * The headers for the requests.
+	 * The request options for fetch calls.
 	 * @internal
 	 */
-	private readonly _headers: IHttpHeaders;
+	private readonly _requestOptions: { headers: IHttpHeaders; timeoutMs?: number };
 
 	/**
 	 * A prefix for the keys stored in the vault.
@@ -124,8 +128,15 @@ export class HashicorpVaultConnector implements IVaultConnector {
 		this._kvMountPath = this._config.kvMountPath ?? "secret";
 		this._transitMountPath = this._config.transitMountPath ?? "transit";
 		this._baseUrl = `${StringHelper.trimTrailingSlashes(this._config.endpoint)}/${this._config.apiVersion ?? "v1"}`;
-		this._headers = {
+		const headers: IHttpHeaders = {
 			"X-Vault-Token": this._config.token
+		};
+		if (Is.stringValue(this._config.namespace)) {
+			headers["X-Vault-Namespace"] = this._config.namespace;
+		}
+		this._requestOptions = {
+			headers,
+			timeoutMs: this._config.timeoutMs
 		};
 		this._prefix = this._config.prefix;
 	}
@@ -140,7 +151,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 
 	/**
 	 * Returns the health status of the component.
-	 * @returns The health status of the component, can return multiple entries for elements within the component.
+	 * @returns The health status of the component.
 	 */
 	public async health(): Promise<IHealth[]> {
 		const endpoint = `${this._baseUrl}/sys/health`;
@@ -150,12 +161,13 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				endpoint,
 				HttpMethod.GET,
 				undefined,
-				{ headers: this._headers }
+				this._requestOptions
 			);
 
 			return [
 				{
 					source: HashicorpVaultConnector.CLASS_NAME,
+					category: HealthCategory.Connectivity,
 					status: HealthStatus.Ok,
 					description: "healthDescription",
 					data: { endpoint }
@@ -165,6 +177,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			return [
 				{
 					source: HashicorpVaultConnector.CLASS_NAME,
+					category: HealthCategory.Connectivity,
 					status: HealthStatus.Error,
 					description: "healthDescription",
 					message: "vaultHealthCheckFailed",
@@ -188,7 +201,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				`${this._baseUrl}/sys/health`,
 				HttpMethod.GET,
 				undefined,
-				{ headers: this._headers }
+				this._requestOptions
 			);
 
 			await nodeLogging?.log({
@@ -197,8 +210,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				ts: Date.now(),
 				message: "hashicorpVaultConnected",
 				data: {
-					address: this._config.endpoint,
-					token: this._config.token
+					address: this._config.endpoint
 				}
 			});
 
@@ -211,8 +223,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				message: "hashicorpVaultConnectionFailed",
 				error: BaseError.fromError(err),
 				data: {
-					address: this._config.endpoint,
-					token: this._config.token
+					address: this._config.endpoint
 				}
 			});
 			return false;
@@ -243,9 +254,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				url,
 				HttpMethod.POST,
 				payload,
-				{
-					headers: this._headers
-				}
+				this._requestOptions
 			);
 		} catch (err) {
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "setSecretFailed", { name }, err);
@@ -298,7 +307,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				url,
 				HttpMethod.GET,
 				undefined,
-				{ headers: this._headers }
+				this._requestOptions
 			);
 
 			return response.data.data.secret;
@@ -349,7 +358,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				url,
 				HttpMethod.DELETE,
 				undefined,
-				{ headers: this._headers }
+				this._requestOptions
 			);
 		} catch (err) {
 			throw new GeneralError(
@@ -408,7 +417,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				url,
 				HttpMethod.POST,
 				payload,
-				{ headers: this._headers }
+				this._requestOptions
 			);
 
 			// If the key is asymmetric, return the public key
@@ -730,9 +739,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				url,
 				HttpMethod.DELETE,
 				undefined,
-				{
-					headers: this._headers
-				}
+				this._requestOptions
 			);
 		} catch (err) {
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "removeKeyFailed", { name }, err);
@@ -774,9 +781,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				ISignDataRequest,
 				IHashicorpVaultResponse<ISignDataResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, this._requestOptions);
 
 			if (response?.data?.signature) {
 				const signatureString = response.data.signature;
@@ -835,9 +840,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				IVerifyDataRequest,
 				IHashicorpVaultResponse<IVerifyDataResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, this._requestOptions);
 
 			if (response?.data?.valid) {
 				return response.data.valid;
@@ -914,9 +917,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				IEncryptDataRequest,
 				IHashicorpVaultResponse<IEncryptDataResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, this._requestOptions);
 
 			if (response?.data?.ciphertext) {
 				const { ciphertext } = response.data;
@@ -987,9 +988,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				IDecryptDataRequest,
 				IHashicorpVaultResponse<IDecryptDataResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, this._requestOptions);
 
 			if (response?.data?.plaintext) {
 				const { plaintext } = response.data;
@@ -1060,7 +1059,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				url,
 				HttpMethod.POST,
 				payload,
-				{ headers: this._headers }
+				this._requestOptions
 			);
 		} catch (err) {
 			throw new GeneralError(
@@ -1088,9 +1087,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<IBackupKeyResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, this._requestOptions);
 
 			if (response?.data?.backup) {
 				const backup = response.data.backup;
@@ -1128,7 +1125,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				url,
 				HttpMethod.POST,
 				payload,
-				{ headers: this._headers }
+				this._requestOptions
 			);
 		} catch (err) {
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "restoreKeyFailed", { name }, err);
@@ -1164,7 +1161,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 				url,
 				HttpMethod.POST,
 				payload,
-				{ headers: this._headers }
+				this._requestOptions
 			);
 		} catch (err) {
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "importKeyFailed", { name }, err);
@@ -1209,9 +1206,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<IExportKeyResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, this._requestOptions);
 
 			if (response?.data) {
 				const { keys, type } = response.data;
@@ -1266,9 +1261,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<IKeyDeleteConfigResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, this._requestOptions);
 
 			return response.data.deletion_allowed;
 		} catch (err) {
@@ -1297,9 +1290,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<IReadKeyResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, this._requestOptions);
 
 			if (response?.data?.name) {
 				const keyName = response.data.name;
@@ -1409,9 +1400,7 @@ export class HashicorpVaultConnector implements IVaultConnector {
 			const response = await FetchHelper.fetchJson<
 				never,
 				IHashicorpVaultResponse<ISecretVersionResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, {
-				headers: this._headers
-			});
+			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.GET, undefined, this._requestOptions);
 
 			if (response?.data?.versions) {
 				const versions = Object.keys(response.data.versions).map(Number);

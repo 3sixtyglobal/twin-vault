@@ -5,6 +5,7 @@ Class for performing vault operations using HashiCorp Vault.
 ## Implements
 
 - `IVaultConnector`
+- `IHealthProviderComponent`
 
 ## Constructors
 
@@ -72,11 +73,11 @@ Returns the health status of the component.
 
 `Promise`\<`IHealth`[]\>
 
-The health status of the component, can return multiple entries for elements within the component.
+The health status of the component.
 
 #### Implementation of
 
-`IVaultConnector.health`
+`IHealthProviderComponent.health`
 
 ***
 
