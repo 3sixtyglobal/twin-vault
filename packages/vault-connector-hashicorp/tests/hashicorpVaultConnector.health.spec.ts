@@ -6,7 +6,7 @@
 import { HealthStatus } from "@twin.org/api-models";
 import { Converter } from "@twin.org/core";
 import { Ed25519 } from "@twin.org/crypto";
-import { VaultKeyType } from "@twin.org/vault-models";
+import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
 import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv.js";
 import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
 
@@ -19,6 +19,116 @@ const TEST_RESTORE_NEW_KEY_NAME =
 	"did:iota:tst:0xac07260b1d822a6906018f3870aea8e50cf59fc46d29feffdf141997d25917c2/immutable-proof";
 
 let vaultConnector: HashicorpVaultConnector;
+
+describe("HashicorpVaultConnector (unavailable Vault)", () => {
+	const unavailableConnector = new HashicorpVaultConnector({
+		config: { endpoint: "http://127.0.0.1:1", token: "invalid-token", apiVersion: "v1" }
+	});
+	const unavailableVaultError = {
+		name: "GeneralError",
+		message: "hashicorpVaultConnector.invalidReadKeyResponse"
+	};
+	const unavailableVaultSecretError = {
+		name: "GeneralError",
+		message: "hashicorpVaultConnector.getSecretVersionsFailed"
+	};
+
+	test("propagates connection failures when reading a key", async () => {
+		await expect(unavailableConnector.getKey(TEST_KEY_NAME)).rejects.toMatchObject(
+			unavailableVaultError
+		);
+	});
+
+	test("propagates connection failures when checking whether a key exists", async () => {
+		await expect(unavailableConnector.keyExists(TEST_KEY_NAME)).rejects.toMatchObject(
+			unavailableVaultError
+		);
+	});
+
+	test("propagates connection failures when getting a key type", async () => {
+		await expect(unavailableConnector.getKeyType(TEST_KEY_NAME)).rejects.toMatchObject(
+			unavailableVaultError
+		);
+	});
+
+	test("propagates connection failures when renaming a key", async () => {
+		await expect(
+			unavailableConnector.renameKey(TEST_KEY_NAME, TEST_RESTORE_KEY_NAME)
+		).rejects.toMatchObject(unavailableVaultError);
+	});
+
+	test("propagates connection failures when removing a key", async () => {
+		await expect(unavailableConnector.removeKey(TEST_KEY_NAME)).rejects.toMatchObject(
+			unavailableVaultError
+		);
+	});
+
+	test("propagates connection failures when signing data", async () => {
+		await expect(
+			unavailableConnector.sign(TEST_KEY_NAME, Converter.utf8ToBytes("test-data"))
+		).rejects.toMatchObject(unavailableVaultError);
+	});
+
+	test("propagates connection failures when verifying a signature", async () => {
+		await expect(
+			unavailableConnector.verify(
+				TEST_KEY_NAME,
+				Converter.utf8ToBytes("test-data"),
+				new Uint8Array()
+			)
+		).rejects.toMatchObject(unavailableVaultError);
+	});
+
+	test("propagates connection failures when encrypting data", async () => {
+		await expect(
+			unavailableConnector.encrypt(
+				TEST_KEY_NAME,
+				VaultEncryptionType.ChaCha20Poly1305,
+				Converter.utf8ToBytes("test-data")
+			)
+		).rejects.toMatchObject(unavailableVaultError);
+	});
+
+	test("propagates connection failures when decrypting data", async () => {
+		await expect(
+			unavailableConnector.decrypt(
+				TEST_KEY_NAME,
+				VaultEncryptionType.ChaCha20Poly1305,
+				new Uint8Array()
+			)
+		).rejects.toMatchObject(unavailableVaultError);
+	});
+
+	test("propagates connection failures when creating a key", async () => {
+		await expect(
+			unavailableConnector.createKey(TEST_KEY_NAME, VaultKeyType.Ed25519)
+		).rejects.toMatchObject(unavailableVaultError);
+	});
+
+	test("propagates connection failures when adding a key", async () => {
+		await expect(
+			unavailableConnector.addKey(TEST_KEY_NAME, VaultKeyType.Ed25519, new Uint8Array(32))
+		).rejects.toMatchObject(unavailableVaultError);
+	});
+
+	test("propagates connection failures when getting a secret", async () => {
+		await expect(unavailableConnector.getSecret(TEST_SECRET_NAME)).rejects.toMatchObject(
+			unavailableVaultSecretError
+		);
+	});
+
+	test("propagates connection failures when removing a secret", async () => {
+		await expect(unavailableConnector.removeSecret(TEST_SECRET_NAME)).rejects.toMatchObject(
+			unavailableVaultSecretError
+		);
+	});
+
+	test("propagates connection failures when checking whether a secret exists", async () => {
+		await expect(unavailableConnector.secretExists(TEST_SECRET_NAME)).rejects.toMatchObject(
+			unavailableVaultSecretError
+		);
+	});
+});
 
 describe("HashicorpVaultConnector (extended)", () => {
 	beforeEach(async () => {
