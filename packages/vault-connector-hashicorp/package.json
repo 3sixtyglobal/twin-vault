@@ -1,6 +1,6 @@
 {
 	"name": "@twin.org/vault-connector-hashicorp",
-	"version": "0.9.3-next.1",
+	"version": "0.10.1-next.0",
 	"description": "HashiCorp Vault connector for transit cryptography and KV secret workflows",
 	"repository": {
 		"type": "git",
@@ -38,7 +38,7 @@
 		"@twin.org/entity-storage-models": "next",
 		"@twin.org/logging-models": "next",
 		"@twin.org/nameof": "next",
-		"@twin.org/vault-models": "0.9.3-next.1",
+		"@twin.org/vault-models": "0.10.1-next.0",
 		"@twin.org/web": "next"
 	},
 	"devDependencies": {
