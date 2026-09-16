@@ -272,8 +272,11 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		try {
 			await this.getSecretVersions(name);
 			return true;
-		} catch {
-			return false;
+		} catch (err) {
+			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
+				return false;
+			}
+			throw err;
 		}
 	}
 
@@ -286,17 +289,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	public async getSecret<T>(name: string): Promise<T> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
-		try {
-			await this.getSecretVersions(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"secretNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		await this.getSecretVersions(name);
 
 		try {
 			const path = this.getSecretPath(name);
@@ -337,17 +330,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	public async removeSecret(name: string): Promise<void> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
-		try {
-			await this.getSecretVersions(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"secretNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		await this.getSecretVersions(name);
 
 		try {
 			const path = this.getSecretMetadataPath(name);
@@ -395,10 +378,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				throw new AlreadyExistsError(HashicorpVaultConnector.CLASS_NAME, "keyAlreadyExists", name);
 			}
 		} catch (err) {
-			if (
-				!Is.object<{ properties?: { httpStatus?: number } }>(err) ||
-				err.properties?.httpStatus !== 404
-			) {
+			if (!BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
 				throw err;
 			}
 		}
@@ -472,10 +452,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				throw new AlreadyExistsError(HashicorpVaultConnector.CLASS_NAME, "keyAlreadyExists", name);
 			}
 		} catch (err) {
-			if (
-				!Is.object<{ properties?: { httpStatus?: number } }>(err) ||
-				err.properties?.httpStatus !== 404
-			) {
+			if (!BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
 				throw err;
 			}
 		}
@@ -572,18 +549,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 			["public", "private", "both"]
 		);
 
-		let keyDetails;
-		try {
-			keyDetails = await this.readKey(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		const keyDetails = await this.readKey(name);
 
 		const type = this.mapHashicorpKeyType(keyDetails.type);
 		const isAsymmetric = this.isAsymmetricKeyType(type);
@@ -632,8 +598,11 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		try {
 			await this.readKey(name);
 			return true;
-		} catch {
-			return false;
+		} catch (err) {
+			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
+				return false;
+			}
+			throw err;
 		}
 	}
 
@@ -646,18 +615,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	public async getKeyType(name: string): Promise<VaultKeyType> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
-		let keyDetails;
-		try {
-			keyDetails = await this.readKey(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		const keyDetails = await this.readKey(name);
 
 		return this.mapHashicorpKeyType(keyDetails.type);
 	}
@@ -672,23 +630,15 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(newName), newName);
 
-		try {
-			await this.readKey(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		await this.readKey(name);
 
 		let existingVaultKey;
 		try {
 			existingVaultKey = await this.readKey(newName);
-		} catch {
-			// key does not exist, which is what we want
+		} catch (err) {
+			if (!BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
+				throw err;
+			}
 		}
 		if (existingVaultKey) {
 			throw new AlreadyExistsError(HashicorpVaultConnector.CLASS_NAME, "keyAlreadyExists", newName);
@@ -716,17 +666,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	public async removeKey(name: string): Promise<void> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
-		try {
-			await this.readKey(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		await this.readKey(name);
 
 		try {
 			const path = this.getTransitKeyPath(name);
@@ -756,17 +696,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 
-		try {
-			await this.readKey(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		await this.readKey(name);
 
 		try {
 			const path = this.getTransitSignPath(name);
@@ -811,17 +741,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(signature), signature);
 
-		try {
-			await this.readKey(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		await this.readKey(name);
 
 		try {
 			const path = this.getTransitVerifyPath(name);
@@ -873,37 +793,16 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		);
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 
-		let keyDetails;
-		try {
-			keyDetails = await this.readKey(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		const keyDetails = await this.readKey(name);
 
-		try {
-			if (
-				encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
-				keyDetails.type !== this.mapVaultKeyType(VaultKeyType.ChaCha20Poly1305)
-			) {
-				throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "keyTypeMismatch", {
-					encryptionType,
-					keyType: keyDetails.type
-				});
-			}
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
+		if (
+			encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
+			keyDetails.type !== this.mapVaultKeyType(VaultKeyType.ChaCha20Poly1305)
+		) {
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "keyTypeMismatch", {
+				encryptionType,
+				keyType: keyDetails.type
+			});
 		}
 
 		try {
@@ -963,17 +862,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		);
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(encryptedData), encryptedData);
 
-		try {
-			await this.readKey(name);
-		} catch (err) {
-			throw new NotFoundError(
-				HashicorpVaultConnector.CLASS_NAME,
-				"keyNotFound",
-				name,
-				undefined,
-				err
-			);
-		}
+		await this.readKey(name);
 
 		try {
 			const path = this.getTransitDecryptPath(name);
@@ -1022,6 +911,9 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 			const versions = await this.fetchSecretVersions(name);
 			return versions;
 		} catch (err) {
+			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
+				throw err;
+			}
 			throw new GeneralError(
 				HashicorpVaultConnector.CLASS_NAME,
 				"getSecretVersionsFailed",
@@ -1298,10 +1190,16 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 			}
 			throw new NotFoundError(HashicorpVaultConnector.CLASS_NAME, "keyNotFound", name);
 		} catch (err) {
-			if (
-				Is.object<{ properties?: { httpStatus?: number } }>(err) &&
-				err.properties?.httpStatus === 404
-			) {
+			if (this.isHttpNotFoundError(err)) {
+				throw new NotFoundError(
+					HashicorpVaultConnector.CLASS_NAME,
+					"keyNotFound",
+					name,
+					undefined,
+					err
+				);
+			}
+			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
 				throw err;
 			}
 			throw new GeneralError(
@@ -1311,6 +1209,24 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				err
 			);
 		}
+	}
+
+	/**
+	 * Determine whether an error is a framework missing-key error.
+	 * @param err The error to inspect.
+	 * @returns True if the error is a NotFoundError.
+	 * @internal
+	 */
+	/**
+	 * Determine whether a Vault request reported a missing key.
+	 * @param err The error to inspect.
+	 * @returns True if the error has an HTTP 404 status.
+	 * @internal
+	 */
+	private isHttpNotFoundError(err: unknown): boolean {
+		return (
+			Is.object<{ properties?: { httpStatus?: number } }>(err) && err.properties?.httpStatus === 404
+		);
 	}
 
 	/**
@@ -1406,8 +1322,20 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				const versions = Object.keys(response.data.versions).map(Number);
 				return versions;
 			}
-			throw new NotFoundError(HashicorpVaultConnector.CLASS_NAME, "versionsNotFound", name);
+			throw new NotFoundError(HashicorpVaultConnector.CLASS_NAME, "secretNotFound", name);
 		} catch (err) {
+			if (this.isHttpNotFoundError(err)) {
+				throw new NotFoundError(
+					HashicorpVaultConnector.CLASS_NAME,
+					"secretNotFound",
+					name,
+					undefined,
+					err
+				);
+			}
+			if (BaseError.isErrorName(err, NotFoundError.CLASS_NAME)) {
+				throw err;
+			}
 			throw new GeneralError(
 				HashicorpVaultConnector.CLASS_NAME,
 				"getSecretVersionsFailed",

@@ -28,7 +28,6 @@
 			"exportKeyFailed": "Failed to export key \"{name}\" with keyPath \"{keyPath}\"",
 			"getKeyDeleteConfigurationFailed": "Failed to get key delete configuration \"{name}\"",
 			"exportKeyNotFound": "Export key with name \"{notFoundId}\" not found",
-			"versionsNotFound": "Versions for key \"{notFoundId}\" not found",
 			"keyNotFound": "The key \"{notFoundId}\" was not found in the vault",
 			"secretNotFound": "The secret \"{notFoundId}\" was not found in the vault",
 			"getKeyFailed": "Failed to get key \"{name}\"",
