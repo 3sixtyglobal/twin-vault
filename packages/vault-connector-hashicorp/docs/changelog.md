@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.10.1-next.2](https://github.com/iotaledger/twin-vault/compare/vault-connector-hashicorp-v0.10.1-next.1...vault-connector-hashicorp-v0.10.1-next.2) (2026-09-18)
+
+
+### Features
+
+* cache key metadata reads in the hashicorp vault connector ([#94](https://github.com/iotaledger/twin-vault/issues/94)) ([3ddcd9d](https://github.com/iotaledger/twin-vault/commit/3ddcd9d7c6bfce5b7a5aaf6024bc317d377116f2))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.10.1-next.1 to 0.10.1-next.2
+
 ## [0.10.1-next.1](https://github.com/iotaledger/twin-vault/compare/vault-connector-hashicorp-v0.10.1-next.0...vault-connector-hashicorp-v0.10.1-next.1) (2026-09-18)
 
 
