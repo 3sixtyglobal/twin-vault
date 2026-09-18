@@ -14,6 +14,7 @@ import {
 	GeneralError,
 	Guards,
 	Is,
+	LruCache,
 	NotFoundError,
 	RandomHelper,
 	StringHelper
@@ -67,6 +68,12 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	private static readonly _DATA_PREFIX: string = "vault:v1:";
 
 	/**
+	 * The default TTL in milliseconds for cached key metadata.
+	 * @internal
+	 */
+	private static readonly _DEFAULT_KEY_METADATA_CACHE_TTL_MS: number = 30000;
+
+	/**
 	 * The configuration for the vault connector.
 	 * @internal
 	 */
@@ -101,6 +108,18 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	 * @internal
 	 */
 	private readonly _prefix?: string;
+
+	/**
+	 * The TTL in milliseconds for cached key metadata.
+	 * @internal
+	 */
+	private readonly _keyMetadataCacheTtlMs: number;
+
+	/**
+	 * Cache of key metadata by key name, undefined when caching is disabled.
+	 * @internal
+	 */
+	private _keyMetadataCache?: LruCache<IReadKeyResponse>;
 
 	/**
 	 * Create a new instance of HashicorpVaultConnector.
@@ -139,6 +158,13 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 			timeoutMs: this._config.timeoutMs
 		};
 		this._prefix = this._config.prefix;
+		this._keyMetadataCacheTtlMs =
+			this._config.keyMetadataCacheTtlMs ??
+			HashicorpVaultConnector._DEFAULT_KEY_METADATA_CACHE_TTL_MS;
+		this._keyMetadataCache =
+			this._keyMetadataCacheTtlMs > 0
+				? new LruCache<IReadKeyResponse>({ ttiMs: this._keyMetadataCacheTtlMs })
+				: undefined;
 	}
 
 	/**
@@ -259,6 +285,16 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		} catch (err) {
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "setSecretFailed", { name }, err);
 		}
+	}
+
+	/**
+	 * Stop the component and release the key metadata cache.
+	 * @param nodeLoggingComponentType The node logging component type.
+	 * @returns A promise that resolves when the component has stopped.
+	 */
+	public async stop(nodeLoggingComponentType?: string): Promise<void> {
+		this._keyMetadataCache?.destroy();
+		this._keyMetadataCache = undefined;
 	}
 
 	/**
@@ -399,6 +435,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				payload,
 				this._requestOptions
 			);
+			this._keyMetadataCache?.delete(name);
 
 			// If the key is asymmetric, return the public key
 			if (this.isAsymmetricKeyType(type)) {
@@ -549,7 +586,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 			["public", "private", "both"]
 		);
 
-		const keyDetails = await this.readKey(name);
+		const keyDetails = await this.readKeyCached(name);
 
 		const type = this.mapHashicorpKeyType(keyDetails.type);
 		const isAsymmetric = this.isAsymmetricKeyType(type);
@@ -615,7 +652,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	public async getKeyType(name: string): Promise<VaultKeyType> {
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 
-		const keyDetails = await this.readKey(name);
+		const keyDetails = await this.readKeyCached(name);
 
 		return this.mapHashicorpKeyType(keyDetails.type);
 	}
@@ -681,6 +718,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				undefined,
 				this._requestOptions
 			);
+			this._keyMetadataCache?.delete(name);
 		} catch (err) {
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "removeKeyFailed", { name }, err);
 		}
@@ -696,7 +734,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		Guards.stringValue(HashicorpVaultConnector.CLASS_NAME, nameof(name), name);
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 
-		await this.readKey(name);
+		await this.readKeyCached(name);
 
 		try {
 			const path = this.getTransitSignPath(name);
@@ -741,7 +779,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(signature), signature);
 
-		await this.readKey(name);
+		await this.readKeyCached(name);
 
 		try {
 			const path = this.getTransitVerifyPath(name);
@@ -793,7 +831,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		);
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(data), data);
 
-		const keyDetails = await this.readKey(name);
+		const keyDetails = await this.readKeyCached(name);
 
 		if (
 			encryptionType === VaultEncryptionType.ChaCha20Poly1305 &&
@@ -862,7 +900,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		);
 		Guards.uint8Array(HashicorpVaultConnector.CLASS_NAME, nameof(encryptedData), encryptedData);
 
-		await this.readKey(name);
+		await this.readKeyCached(name);
 
 		try {
 			const path = this.getTransitDecryptPath(name);
@@ -1019,6 +1057,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				payload,
 				this._requestOptions
 			);
+			this._keyMetadataCache?.delete(name);
 		} catch (err) {
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "restoreKeyFailed", { name }, err);
 		}
@@ -1055,6 +1094,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				payload,
 				this._requestOptions
 			);
+			this._keyMetadataCache?.delete(name);
 		} catch (err) {
 			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "importKeyFailed", { name }, err);
 		}
@@ -1209,6 +1249,23 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 				err
 			);
 		}
+	}
+
+	/**
+	 * Read key metadata, served from the cache when it is enabled.
+	 * @param name The name of the key.
+	 * @returns An object containing key information.
+	 * @internal
+	 */
+	private async readKeyCached(name: string): Promise<IReadKeyResponse> {
+		const cached = this._keyMetadataCache?.get(name);
+		if (!Is.undefined(cached)) {
+			return cached;
+		}
+
+		const keyDetails = await this.readKey(name);
+		this._keyMetadataCache?.set(name, keyDetails, Date.now() + this._keyMetadataCacheTtlMs);
+		return keyDetails;
 	}
 
 	/**

@@ -145,6 +145,32 @@ A promise that resolves when the secret has been stored.
 
 ***
 
+### stop() {#stop}
+
+> **stop**(`nodeLoggingComponentType?`): `Promise`\<`void`\>
+
+Stop the component and release the key metadata cache.
+
+#### Parameters
+
+##### nodeLoggingComponentType?
+
+`string`
+
+The node logging component type.
+
+#### Returns
+
+`Promise`\<`void`\>
+
+A promise that resolves when the component has stopped.
+
+#### Implementation of
+
+`IVaultConnector.stop`
+
+***
+
 ### secretExists() {#secretexists}
 
 > **secretExists**(`name`): `Promise`\<`boolean`\>

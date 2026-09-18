@@ -44,4 +44,10 @@ export interface IHashicorpVaultConnectorConfig {
 	 * A prefix for the keys stored in the Hashicorp Vault.
 	 */
 	prefix?: string;
+
+	/**
+	 * TTL in ms for caching key metadata read before transit operations, 0 disables caching.
+	 * @default 30000
+	 */
+	keyMetadataCacheTtlMs?: number;
 }

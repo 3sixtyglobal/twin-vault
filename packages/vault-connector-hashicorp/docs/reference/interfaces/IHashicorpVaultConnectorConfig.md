@@ -65,3 +65,17 @@ The namespace for the Hashicorp Vault if using Vault Enterprise.
 > `optional` **prefix?**: `string`
 
 A prefix for the keys stored in the Hashicorp Vault.
+
+***
+
+### keyMetadataCacheTtlMs? {#keymetadatacachettlms}
+
+> `optional` **keyMetadataCacheTtlMs?**: `number`
+
+TTL in ms for caching key metadata read before transit operations, 0 disables caching.
+
+#### Default
+
+```ts
+30000
+```
