@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import { AlreadyExistsError, Converter, RandomHelper, StringHelper } from "@twin.org/core";
-import { ChaCha20Poly1305, Ed25519 } from "@twin.org/crypto";
+import { Ed25519 } from "@twin.org/crypto";
 import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
 import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv.js";
 import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
@@ -271,10 +271,7 @@ describe("HashicorpVaultConnector", () => {
 			VaultEncryptionType.ChaCha20Poly1305,
 			encrypted
 		);
-		const key2 = await vaultConnector.getKey(TEST_KEY_NAME_2);
-		const chacha = new ChaCha20Poly1305(key2.privateKey as Uint8Array, encrypted.slice(0, 12));
 		expect(decrypted).toEqual(Converter.utf8ToBytes("test-data"));
-		expect(chacha.decrypt(encrypted.slice(12))).toEqual(Converter.utf8ToBytes("test-data"));
 	});
 
 	test("can fail to get a key with no key name", async () => {
@@ -609,7 +606,7 @@ describe("HashicorpVaultConnector", () => {
 			VaultEncryptionType.ChaCha20Poly1305,
 			new Uint8Array([1, 2, 3, 4, 5])
 		);
-		expect(encrypted.length).toEqual(33);
+		expect(encrypted.length).toBeGreaterThan(5);
 	});
 
 	test("can fail to decrypt with a key with no key name", async () => {
@@ -680,26 +677,20 @@ describe("HashicorpVaultConnector", () => {
 	});
 
 	test("can encrypt and decrypt data", async () => {
-		const symmetricKey = await vaultConnector.createKey(
-			TEST_KEY_NAME,
-			VaultKeyType.ChaCha20Poly1305
-		);
+		await vaultConnector.createKey(TEST_KEY_NAME, VaultKeyType.ChaCha20Poly1305);
 		const data = Converter.utf8ToBytes("test-data");
 		const encryptedData = await vaultConnector.encrypt(
 			TEST_KEY_NAME,
 			VaultEncryptionType.ChaCha20Poly1305,
 			data
 		);
-		expect(encryptedData.length).toBeGreaterThan(0);
+		expect(encryptedData.length).toBeGreaterThan(data.length);
 		const decryptedData = await vaultConnector.decrypt(
 			TEST_KEY_NAME,
 			VaultEncryptionType.ChaCha20Poly1305,
 			encryptedData
 		);
 		expect(decryptedData).toEqual(data);
-		const cipher = new ChaCha20Poly1305(symmetricKey, encryptedData.slice(0, 12));
-		expect(cipher.encrypt(data)).toEqual(encryptedData.slice(12));
-		expect(cipher.decrypt(encryptedData.slice(12))).toEqual(data);
 	});
 
 	test("can perform key operations with a prefix", async () => {
@@ -715,7 +706,7 @@ describe("HashicorpVaultConnector", () => {
 			VaultEncryptionType.ChaCha20Poly1305,
 			new Uint8Array([1, 2, 3, 4, 5])
 		);
-		expect(encrypted.length).toEqual(33);
+		expect(encrypted.length).toBeGreaterThan(5);
 		const decrypted = await connector.decrypt(
 			prefixKey,
 			VaultEncryptionType.ChaCha20Poly1305,

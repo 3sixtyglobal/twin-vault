@@ -19,13 +19,14 @@ import {
 	RandomHelper,
 	StringHelper
 } from "@twin.org/core";
-import { Ed25519 } from "@twin.org/crypto";
+import { ChaCha20Poly1305, Ed25519 } from "@twin.org/crypto";
 import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
 import { FetchHelper, HttpMethod, type IHttpHeaders } from "@twin.org/web";
 import type { IBackupKeyResponse } from "./models/IBackupKeyResponse.js";
 import type { ICreateKeyRequest } from "./models/ICreateKeyRequest.js";
+import type { IDataKeyEnvelope } from "./models/IDataKeyEnvelope.js";
 import type { IDecryptDataRequest } from "./models/IDecryptDataRequest.js";
 import type { IDecryptDataResponse } from "./models/IDecryptDataResponse.js";
 import type { IEncryptDataRequest } from "./models/IEncryptDataRequest.js";
@@ -66,6 +67,30 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	 * @internal
 	 */
 	private static readonly _DATA_PREFIX: string = "vault:v1:";
+
+	/**
+	 * The prefix marking data encrypted under a wrapped data key.
+	 * @internal
+	 */
+	private static readonly _ENVELOPE_PREFIX: Uint8Array = Converter.utf8ToBytes("twin:env:v1:");
+
+	/**
+	 * The length in bytes of a data key.
+	 * @internal
+	 */
+	private static readonly _DATA_KEY_LENGTH: number = 32;
+
+	/**
+	 * The length in bytes of a ChaCha20Poly1305 nonce.
+	 * @internal
+	 */
+	private static readonly _NONCE_LENGTH: number = 12;
+
+	/**
+	 * The length in bytes of a ChaCha20Poly1305 authentication tag.
+	 * @internal
+	 */
+	private static readonly _TAG_LENGTH: number = 16;
 
 	/**
 	 * The default TTL in milliseconds for cached key metadata.
@@ -811,7 +836,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	}
 
 	/**
-	 * Encrypt data.
+	 * Encrypt data locally under a data key wrapped by the transit key.
 	 * @param name The name of the key to use.
 	 * @param encryptionType The type of encryption to use.
 	 * @param data The data to encrypt.
@@ -844,31 +869,18 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		}
 
 		try {
-			const path = this.getTransitEncryptPath(name);
-			const url = `${this._baseUrl}/${path}`;
+			const dataKey = RandomHelper.generate(HashicorpVaultConnector._DATA_KEY_LENGTH);
+			const wrappedKey = await this.transitEncrypt(name, dataKey);
+			const header = this.buildEnvelopeHeader(wrappedKey);
+			const nonce = RandomHelper.generate(HashicorpVaultConnector._NONCE_LENGTH);
+			const payload = new ChaCha20Poly1305(dataKey, nonce, header).encrypt(data);
+			dataKey.fill(0);
 
-			const payload = {
-				plaintext: Converter.bytesToBase64(data)
-			};
-
-			const response = await FetchHelper.fetchJson<
-				IEncryptDataRequest,
-				IHashicorpVaultResponse<IEncryptDataResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, this._requestOptions);
-
-			if (response?.data?.ciphertext) {
-				const { ciphertext } = response.data;
-
-				const cleanedCiphertext = ciphertext.startsWith(HashicorpVaultConnector._DATA_PREFIX)
-					? ciphertext.slice(HashicorpVaultConnector._DATA_PREFIX.length)
-					: ciphertext;
-
-				return Converter.base64ToBytes(cleanedCiphertext);
-			}
-			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "invalidEncryptResponse", {
-				name,
-				encryptionType
-			});
+			const envelope = new Uint8Array(header.length + nonce.length + payload.length);
+			envelope.set(header);
+			envelope.set(nonce, header.length);
+			envelope.set(payload, header.length + nonce.length);
+			return envelope;
 		} catch (err) {
 			throw new GeneralError(
 				HashicorpVaultConnector.CLASS_NAME,
@@ -880,7 +892,7 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 	}
 
 	/**
-	 * Decrypt data.
+	 * Decrypt data, either an envelope or data encrypted directly by the transit key.
 	 * @param name The name of the key to use.
 	 * @param encryptionType The type of encryption to use.
 	 * @param encryptedData The encrypted data to decrypt.
@@ -903,29 +915,20 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		await this.readKeyCached(name);
 
 		try {
-			const path = this.getTransitDecryptPath(name);
-			const url = `${this._baseUrl}/${path}`;
-
-			const ciphertext = Converter.bytesToBase64(encryptedData);
-
-			const payload = {
-				ciphertext: `${HashicorpVaultConnector._DATA_PREFIX}${ciphertext}`
-			};
-
-			const response = await FetchHelper.fetchJson<
-				IDecryptDataRequest,
-				IHashicorpVaultResponse<IDecryptDataResponse>
-			>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, this._requestOptions);
-
-			if (response?.data?.plaintext) {
-				const { plaintext } = response.data;
-				return Converter.base64ToBytes(plaintext);
+			if (!this.hasEnvelopePrefix(encryptedData)) {
+				return await this.transitDecrypt(
+					name,
+					`${HashicorpVaultConnector._DATA_PREFIX}${Converter.bytesToBase64(encryptedData)}`
+				);
 			}
 
-			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "invalidDecryptResponse", {
-				name,
-				encryptionType
-			});
+			const envelope = this.parseEnvelope(encryptedData);
+			const dataKey = await this.transitDecrypt(name, envelope.wrappedKey);
+			const decrypted = new ChaCha20Poly1305(dataKey, envelope.nonce, envelope.header).decrypt(
+				envelope.payload
+			);
+			dataKey.fill(0);
+			return decrypted;
 		} catch (err) {
 			throw new GeneralError(
 				HashicorpVaultConnector.CLASS_NAME,
@@ -1266,6 +1269,106 @@ export class HashicorpVaultConnector implements IVaultConnector, IHealthProvider
 		const keyDetails = await this.readKey(name);
 		this._keyMetadataCache?.set(name, keyDetails, Date.now() + this._keyMetadataCacheTtlMs);
 		return keyDetails;
+	}
+
+	/**
+	 * Encrypt bytes with the transit key.
+	 * @param name The name of the key.
+	 * @param data The bytes to encrypt.
+	 * @returns The transit ciphertext including its version prefix.
+	 * @internal
+	 */
+	private async transitEncrypt(name: string, data: Uint8Array): Promise<string> {
+		const url = `${this._baseUrl}/${this.getTransitEncryptPath(name)}`;
+		const payload = { plaintext: Converter.bytesToBase64(data) };
+
+		const response = await FetchHelper.fetchJson<
+			IEncryptDataRequest,
+			IHashicorpVaultResponse<IEncryptDataResponse>
+		>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, this._requestOptions);
+
+		if (Is.stringValue(response?.data?.ciphertext)) {
+			return response.data.ciphertext;
+		}
+		throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "invalidEncryptResponse", { name });
+	}
+
+	/**
+	 * Decrypt a transit ciphertext with the transit key.
+	 * @param name The name of the key.
+	 * @param ciphertext The transit ciphertext including its version prefix.
+	 * @returns The decrypted bytes.
+	 * @internal
+	 */
+	private async transitDecrypt(name: string, ciphertext: string): Promise<Uint8Array> {
+		const url = `${this._baseUrl}/${this.getTransitDecryptPath(name)}`;
+		const payload = { ciphertext };
+
+		const response = await FetchHelper.fetchJson<
+			IDecryptDataRequest,
+			IHashicorpVaultResponse<IDecryptDataResponse>
+		>(HashicorpVaultConnector.CLASS_NAME, url, HttpMethod.POST, payload, this._requestOptions);
+
+		if (Is.stringValue(response?.data?.plaintext)) {
+			return Converter.base64ToBytes(response.data.plaintext);
+		}
+		throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "invalidDecryptResponse", { name });
+	}
+
+	/**
+	 * Check whether the data starts with the envelope prefix.
+	 * @param data The data to check.
+	 * @returns True if the data is an envelope.
+	 * @internal
+	 */
+	private hasEnvelopePrefix(data: Uint8Array): boolean {
+		return HashicorpVaultConnector._ENVELOPE_PREFIX.every((byte, index) => data[index] === byte);
+	}
+
+	/**
+	 * Build the envelope header, the prefix followed by the length prefixed wrapped data key.
+	 * @param wrappedKey The transit ciphertext of the data key.
+	 * @returns The header bytes.
+	 * @internal
+	 */
+	private buildEnvelopeHeader(wrappedKey: string): Uint8Array {
+		const prefix = HashicorpVaultConnector._ENVELOPE_PREFIX;
+		const wrappedBytes = Converter.utf8ToBytes(wrappedKey);
+		const header = new Uint8Array(prefix.length + 2 + wrappedBytes.length);
+		header.set(prefix);
+		new DataView(header.buffer).setUint16(prefix.length, wrappedBytes.length);
+		header.set(wrappedBytes, prefix.length + 2);
+		return header;
+	}
+
+	/**
+	 * Split an envelope into its header, wrapped data key, nonce and payload.
+	 * @param envelope The envelope bytes.
+	 * @returns The envelope parts.
+	 * @throws GeneralError if the envelope is shorter than its header declares.
+	 * @internal
+	 */
+	private parseEnvelope(envelope: Uint8Array): IDataKeyEnvelope {
+		const lengthOffset = HashicorpVaultConnector._ENVELOPE_PREFIX.length;
+		const wrappedLength =
+			envelope.length >= lengthOffset + 2
+				? new DataView(envelope.buffer, envelope.byteOffset).getUint16(lengthOffset)
+				: 0;
+		const headerLength = lengthOffset + 2 + wrappedLength;
+		const payloadOffset = headerLength + HashicorpVaultConnector._NONCE_LENGTH;
+
+		if (envelope.length < payloadOffset + HashicorpVaultConnector._TAG_LENGTH) {
+			throw new GeneralError(HashicorpVaultConnector.CLASS_NAME, "invalidEnvelope", {
+				length: envelope.length
+			});
+		}
+
+		return {
+			header: envelope.slice(0, headerLength),
+			wrappedKey: Converter.bytesToUtf8(envelope, lengthOffset + 2, wrappedLength),
+			nonce: envelope.slice(headerLength, payloadOffset),
+			payload: envelope.slice(payloadOffset)
+		};
 	}
 
 	/**

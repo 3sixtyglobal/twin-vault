@@ -103,6 +103,8 @@ console.log(deletionAllowedAfter); // true
 await connector.removeKey('current-key-name');
 ```
 
+Payloads are encrypted locally under a per-call data key that is wrapped by the transit key, so only the data key travels through Vault and the payload size is not bounded by the Vault request limits.
+
 ```typescript
 import { Converter } from '@twin.org/core';
 import { HashicorpVaultConnector } from '@twin.org/vault-connector-hashicorp';
