@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1-next.3](https://github.com/iotaledger/twin-vault/compare/vault-models-v0.10.1-next.2...vault-models-v0.10.1-next.3) (2026-09-22)
+
+
+### Miscellaneous Chores
+
+* **vault-models:** Synchronize repo versions
+
 ## [0.10.1-next.2](https://github.com/iotaledger/twin-vault/compare/vault-models-v0.10.1-next.1...vault-models-v0.10.1-next.2) (2026-09-18)
 
 

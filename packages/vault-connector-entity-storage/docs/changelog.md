@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.10.1-next.3](https://github.com/iotaledger/twin-vault/compare/vault-connector-entity-storage-v0.10.1-next.2...vault-connector-entity-storage-v0.10.1-next.3) (2026-09-22)
+
+
+### Features
+
+* encrypt payloads locally under a data key wrapped by vault transit ([#96](https://github.com/iotaledger/twin-vault/issues/96)) ([4d8d627](https://github.com/iotaledger/twin-vault/commit/4d8d627de5b9df35e2e0918106a93adcdb820952))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.10.1-next.2 to 0.10.1-next.3
+
 ## [0.10.1-next.2](https://github.com/iotaledger/twin-vault/compare/vault-connector-entity-storage-v0.10.1-next.1...vault-connector-entity-storage-v0.10.1-next.2) (2026-09-18)
 
 
