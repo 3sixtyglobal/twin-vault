@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.10.1-next.4](https://github.com/iotaledger/twin-vault/compare/vault-connector-entity-storage-v0.10.1-next.3...vault-connector-entity-storage-v0.10.1-next.4) (2026-09-23)
+
+
+### Features
+
+* entity storage dates ([#99](https://github.com/iotaledger/twin-vault/issues/99)) ([c349561](https://github.com/iotaledger/twin-vault/commit/c34956115304c3504589bd144d444ecfb50dea45))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/vault-models bumped from 0.10.1-next.3 to 0.10.1-next.4
+
 ## [0.10.1-next.3](https://github.com/iotaledger/twin-vault/compare/vault-connector-entity-storage-v0.10.1-next.2...vault-connector-entity-storage-v0.10.1-next.3) (2026-09-22)
 
 
