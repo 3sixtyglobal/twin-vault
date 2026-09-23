@@ -19,6 +19,7 @@ export default defineConfig({
 			exclude: ["**/index.ts", "**/models/**/*.ts"]
 		},
 		fileParallelism: true,
-		fsModuleCache: true
+		fsModuleCache: true,
+		fsModuleCachePath: "node_modules/.vitest-cache"
 	}
 });

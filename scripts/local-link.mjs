@@ -30,29 +30,25 @@
  */
 import fs, { readdir } from 'node:fs/promises';
 import path from 'node:path';
-import {
-	directoryExists,
-	fileExists,
-	isSymbolicLink,
-	loadJson,
-	loadWorkspaceDirs
-} from './common.mjs';
+import { directoryExists, fileExists, isSymbolicLink, loadJson } from './common.mjs';
 
 /**
  * Execute the process.
  */
 async function run() {
-	process.stdout.write('Local Link\n');
-	process.stdout.write('==========\n');
+	process.stdout.write('🔗 Local Link\n');
 	process.stdout.write('\n');
-	process.stdout.write(`Platform: ${process.platform}\n`);
+	process.stdout.write(`💻 Platform: ${process.platform}\n`);
 
 	if (process.argv.length <= 2) {
 		throw new Error('No target package specified');
 	}
 
-	process.stdout.write('\n');
 	const targetPackage = process.argv[2];
+
+	const isUnlink = process.argv[3] === 'unlink';
+	process.stdout.write(`${isUnlink ? '↩️ ' : '🔧'} Mode:     ${isUnlink ? 'unlink' : 'link'}\n`);
+	process.stdout.write(`🎯 Target:   ${targetPackage}\n`);
 
 	// The target package starts with an @ so we have to try and locate it by
 	// looking in the parent folder and assuming the other repos are in
@@ -60,22 +56,45 @@ async function run() {
 	const packages = await findPackagesDetails(targetPackage);
 
 	const nodeModulesDirs = await findNodeModulesDirs(path.resolve('.'));
-	process.stdout.write('Node Modules:\n');
+
+	process.stdout.write(`\n📦 Matched packages: ${packages.length}\n`);
+	for (const pkg of packages) {
+		process.stdout.write(`   • ${pkg.packageName}\n`);
+	}
+
+	process.stdout.write(`\n📂 Local node modules locations: ${nodeModulesDirs.length}\n`);
 	for (const nodeModulesDir of nodeModulesDirs) {
-		process.stdout.write(`\t${nodeModulesDir}\n`);
+		process.stdout.write(`   • ${relativeToHere(nodeModulesDir)}\n`);
 	}
 
-	if (process.argv[3] === 'unlink') {
-		for (const pkg of packages) {
-			await unlinkPackage(nodeModulesDirs, pkg.packageName);
-		}
-	} else {
-		for (const pkg of packages) {
-			await linkPackage(nodeModulesDirs, pkg.packageName, pkg.targetDir);
+	let changed = 0;
+
+	for (const [index, pkg] of packages.entries()) {
+		const position = `[${index + 1}/${packages.length}]`;
+
+		if (isUnlink) {
+			process.stdout.write(`\n${position} ${pkg.packageName}\n`);
+			changed += await unlinkPackage(nodeModulesDirs, pkg.packageName);
+		} else {
+			process.stdout.write(`\n${position} ${pkg.packageName}\n   => ${pkg.targetDir}\n`);
+			changed += await linkPackage(nodeModulesDirs, pkg.packageName, pkg.targetDir);
 		}
 	}
 
-	process.stdout.write('\nDone.\n');
+	const action = isUnlink ? 'Unlinked' : 'Linked';
+	process.stdout.write(
+		`\n🎉 Done. ${action} ${changed} location${changed === 1 ? '' : 's'} across ${packages.length} package${packages.length === 1 ? '' : 's'}.\n`
+	);
+}
+
+/**
+ * Shorten a path so it reads relative to the repository being worked in.
+ * @param target The path to shorten.
+ * @returns The path relative to the current repository.
+ */
+function relativeToHere(target) {
+	const relative = path.relative(path.resolve('.'), target);
+	return relative.length === 0 ? '.' : relative;
 }
 
 /**
@@ -83,46 +102,50 @@ async function run() {
  * @param nodeModulesDirs The node_modules directories to link in.
  * @param packageName The name of the package to link.
  * @param targetDir The target directory of the package to link.
+ * @returns How many locations were linked.
  */
 async function linkPackage(nodeModulesDirs, packageName, targetDir) {
+	let foundCount = 0;
 	let linkCount = 0;
 
 	for (const nodeModulesDir of nodeModulesDirs) {
 		const currentNodeDir = path.join(nodeModulesDir, packageName);
+		const location = relativeToHere(currentNodeDir);
 
 		// Only proceed if the package is installed in this node_modules
 		if (await entryExists(currentNodeDir)) {
-			linkCount++;
+			foundCount++;
 
 			if (await isLinkedTo(currentNodeDir, targetDir)) {
-				process.stdout.write(`\nThe package ${currentNodeDir} is already linked, skipping\n`);
+				process.stdout.write(`   ⏭️  already linked  ${location}\n`);
 			} else {
-				process.stdout.write(`\nLinking package ${packageName}\n`);
-				process.stdout.write(`Target package directory: ${targetDir}\n`);
-
 				// The backup retains whatever was installed, a real directory when the
 				// packages are hoisted, or a symbolic link into the store when they are not
 				const backupNodeDir = `${currentNodeDir}.bak`;
 				await removeEntry(backupNodeDir);
-
-				process.stdout.write(`Renaming: ${currentNodeDir} to ${backupNodeDir}\n`);
 				await fs.rename(currentNodeDir, backupNodeDir);
-
-				process.stdout.write(`Creating symlink: ${currentNodeDir} to ${targetDir}\n`);
 				await fs.symlink(targetDir, currentNodeDir);
+
+				linkCount++;
+				process.stdout.write(`   ✅ linked          ${location}\n`);
 			}
 		}
 	}
 
-	if (linkCount === 0) {
-		process.stdout.write(`\nThe package ${packageName} is not installed, skipping\n`);
+	if (foundCount === 0) {
+		process.stdout.write('   ⚠️  not installed in any of the locations, skipping\n');
+	} else {
+		process.stdout.write(`   ↳  linked ${linkCount} of ${foundCount} installed location(s)\n`);
 	}
+
+	return linkCount;
 }
 
 /**
  * Unlink the specified package in every node_modules which contains a backup.
  * @param nodeModulesDirs The node_modules directories to unlink in.
  * @param packageName The name of the package to unlink.
+ * @returns How many locations were unlinked.
  */
 async function unlinkPackage(nodeModulesDirs, packageName) {
 	let unlinkCount = 0;
@@ -130,32 +153,33 @@ async function unlinkPackage(nodeModulesDirs, packageName) {
 	for (const nodeModulesDir of nodeModulesDirs) {
 		const linkName = path.join(nodeModulesDir, packageName);
 		const linkNameBackup = `${linkName}.bak`;
+		const location = relativeToHere(linkName);
 
 		// Only proceed if there is a backup to restore
 		if (await entryExists(linkNameBackup)) {
 			const linkExists = await entryExists(linkName);
 
 			if (linkExists && !(await isSymbolicLink(linkName))) {
-				process.stdout.write(`\nThe package ${linkName} is not a symbolic link, skipping\n`);
+				process.stdout.write(`   ⚠️  not a symbolic link, skipping  ${location}\n`);
 			} else {
-				process.stdout.write(`\nUnlinking package ${packageName}\n`);
-
 				if (linkExists) {
-					process.stdout.write(`Removing symlink: ${linkName}\n`);
 					await fs.unlink(linkName);
 				}
-
-				process.stdout.write(`Renaming backup: ${linkNameBackup} to ${linkName}\n`);
 				await fs.rename(linkNameBackup, linkName);
 
 				unlinkCount++;
+				process.stdout.write(`   ↩️  unlinked        ${location}\n`);
 			}
 		}
 	}
 
 	if (unlinkCount === 0) {
-		process.stdout.write(`\nThe package ${packageName} is not linked, skipping\n`);
+		process.stdout.write('   ⚠️  not linked in any of the locations, skipping\n');
+	} else {
+		process.stdout.write(`   ↳  unlinked ${unlinkCount} location(s)\n`);
 	}
+
+	return unlinkCount;
 }
 
 /**
@@ -232,6 +256,36 @@ async function removeEntry(entry) {
 }
 
 /**
+ * Find the package directories in a repository by looking at the folders on disk.
+ * Asking pnpm for the workspace projects is authoritative, but it starts a process
+ * for every repository and installs the dependencies when they are missing, which
+ * is far too slow when every sibling repository is being searched.
+ * @param repoRoot The root directory of the repository.
+ * @returns The package directories relative to the root.
+ */
+async function findPackageDirs(repoRoot) {
+	const packageDirs = [];
+
+	for (const parent of ['packages', 'apps']) {
+		const parentDir = path.join(repoRoot, parent);
+
+		// A repository does not have to contain both of the parent folders.
+		if (await directoryExists(parentDir)) {
+			for (const entry of await readdir(parentDir, { withFileTypes: true })) {
+				if (entry.isDirectory()) {
+					const packageDir = `${parent}/${entry.name}`;
+					if (await fileExists(path.join(repoRoot, packageDir, 'package.json'))) {
+						packageDirs.push(packageDir);
+					}
+				}
+			}
+		}
+	}
+
+	return packageDirs;
+}
+
+/**
  * Find the package directory and name.
  * @param targetPackage The target package to find.
  * @returns The package directory and name.
@@ -240,10 +294,8 @@ async function findPackagesDetails(targetPackage) {
 	const packages = [];
 
 	if (targetPackage.startsWith('@')) {
-		process.stdout.write(`Finding package by name: ${targetPackage}\n`);
-
 		const repoDirRoot = path.resolve('..');
-		process.stdout.write(`Root repo directory: ${repoDirRoot}\n\n`);
+		process.stdout.write(`🔍 Search:   ${repoDirRoot}\n`);
 
 		const targetPackageParts = targetPackage.split('/');
 		const packageNameOnly = targetPackageParts[1];
@@ -253,7 +305,7 @@ async function findPackagesDetails(targetPackage) {
 			if (repoDir.isDirectory()) {
 				const repoRoot = path.join(repoDirRoot, repoDir.name);
 				if (await fileExists(path.join(repoRoot, 'package.json'))) {
-					for (const workspaceEntry of await loadWorkspaceDirs(repoRoot)) {
+					for (const workspaceEntry of await findPackageDirs(repoRoot)) {
 						const entryParts = workspaceEntry.split('/');
 						if (new RegExp(`^${packageNameOnly}`).test(entryParts[1])) {
 							const targetDir = path.join(repoRoot, workspaceEntry);
