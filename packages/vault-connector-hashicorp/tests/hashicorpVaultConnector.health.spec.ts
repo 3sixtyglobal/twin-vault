@@ -4,19 +4,17 @@
 // IVaultConnector interface: health checks, exportKey, backupKey, restoreKey,
 // updateKeyConfig, getKeyDeleteConfiguration, getSecretVersions.
 import { HealthStatus } from "@twin.org/api-models";
-import { Converter } from "@twin.org/core";
+import { Converter, RandomHelper } from "@twin.org/core";
 import { Ed25519 } from "@twin.org/crypto";
 import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
 import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv.js";
 import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
 
 const TEST_KEY_NAME = `test-hc-key=+/@!£$%^&*()${Converter.bytesToHex(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]))}`;
-const TEST_SECRET_NAME =
-	"bootstrap-4d8819601e1955d4d2a1c98608629c58eb579692fb8c1b49b258726e31e8a8d4_mnemonic'";
-const TEST_RESTORE_KEY_NAME =
-	"did:iota:tst:0xac07260b1d822a6906018f3870aea8e50cf59fc46d29feffdf141997d25917c2/temp-vm-dkwsdrKHIM_7L1dBs-zWsA";
-const TEST_RESTORE_NEW_KEY_NAME =
-	"did:iota:tst:0xac07260b1d822a6906018f3870aea8e50cf59fc46d29feffdf141997d25917c2/immutable-proof";
+const TEST_UNIQUE_SUFFIX = Converter.bytesToHex(RandomHelper.generate(8));
+const TEST_SECRET_NAME = `bootstrap-${TEST_UNIQUE_SUFFIX}_mnemonic'`;
+const TEST_RESTORE_KEY_NAME = `did:iota:tst:0x${TEST_UNIQUE_SUFFIX}/temp-vm-dkwsdrKHIM_7L1dBs-zWsA`;
+const TEST_RESTORE_NEW_KEY_NAME = `did:iota:tst:0x${TEST_UNIQUE_SUFFIX}/immutable-proof`;
 
 let vaultConnector: HashicorpVaultConnector;
 
