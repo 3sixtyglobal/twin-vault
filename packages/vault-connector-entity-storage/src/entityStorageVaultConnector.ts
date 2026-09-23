@@ -114,11 +114,14 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 			privateKey = seed.slice(0, 32);
 		}
 
+		const now = new Date(Date.now()).toISOString();
 		const vaultKey: VaultKey = {
 			id: fullKeyName,
 			type,
 			privateKey: Converter.bytesToBase64(privateKey),
-			publicKey: Is.undefined(publicKey) ? undefined : Converter.bytesToBase64(publicKey)
+			publicKey: Is.undefined(publicKey) ? undefined : Converter.bytesToBase64(publicKey),
+			dateCreated: now,
+			dateModified: now
 		};
 
 		await this._vaultKeyEntityStorageConnector.set(vaultKey);
@@ -163,11 +166,14 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 			);
 		}
 
+		const now = new Date(Date.now()).toISOString();
 		const vaultKey: VaultKey = {
 			id: fullKeyName,
 			type,
 			privateKey: Converter.bytesToBase64(privateKey),
-			publicKey: Is.undefined(publicKey) ? undefined : Converter.bytesToBase64(publicKey)
+			publicKey: Is.undefined(publicKey) ? undefined : Converter.bytesToBase64(publicKey),
+			dateCreated: now,
+			dateModified: now
 		};
 
 		await this._vaultKeyEntityStorageConnector.set(vaultKey);
@@ -300,6 +306,7 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 			}
 
 			vaultKey.id = newFullKeyName;
+			vaultKey.dateModified = new Date(Date.now()).toISOString();
 
 			await this._vaultKeyEntityStorageConnector.set(vaultKey);
 
@@ -496,9 +503,14 @@ export class EntityStorageVaultConnector implements IVaultConnector {
 
 		const fullKeyName = this.createKeyName(name);
 
+		const existingSecret = await this._vaultSecretEntityStorageConnector.get(fullKeyName);
+		const now = new Date(Date.now()).toISOString();
+
 		const vaultSecret: VaultSecret = {
 			id: fullKeyName,
-			data
+			data,
+			dateCreated: existingSecret?.dateCreated ?? now,
+			dateModified: now
 		};
 
 		await this._vaultSecretEntityStorageConnector.set(vaultSecret);
