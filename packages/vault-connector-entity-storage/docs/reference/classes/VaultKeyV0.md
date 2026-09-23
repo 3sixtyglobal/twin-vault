@@ -1,16 +1,16 @@
-# Class: VaultKey
+# Class: VaultKeyV0
 
-Class defining a vault key.
+Class defining a vault key, version 0.
 
 ## Constructors
 
 ### Constructor
 
-> **new VaultKey**(): `VaultKey`
+> **new VaultKeyV0**(): `VaultKeyV0`
 
 #### Returns
 
-`VaultKey`
+`VaultKeyV0`
 
 ## Properties
 
@@ -43,19 +43,3 @@ The private key in base64 format.
 > `optional` **publicKey?**: `string`
 
 The public key in base64 format.
-
-***
-
-### dateCreated? {#datecreated}
-
-> `optional` **dateCreated?**: `string`
-
-The date the key was created, in ISO 8601 format.
-
-***
-
-### dateModified? {#datemodified}
-
-> `optional` **dateModified?**: `string`
-
-The date the key was last modified, in ISO 8601 format.

@@ -3,7 +3,9 @@
 ## Classes
 
 - [VaultKey](classes/VaultKey.md)
+- [VaultKeyV0](classes/VaultKeyV0.md)
 - [VaultSecret](classes/VaultSecret.md)
+- [VaultSecretV0](classes/VaultSecretV0.md)
 - [EntityStorageVaultConnector](classes/EntityStorageVaultConnector.md)
 
 ## Interfaces
