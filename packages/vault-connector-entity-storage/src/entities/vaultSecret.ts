@@ -5,12 +5,12 @@ import { entity, property } from "@twin.org/entity";
 /**
  * Class defining a vault secret.
  */
-@entity()
+@entity({ version: 1 })
 export class VaultSecret {
 	/**
 	 * The id.
 	 */
-	@property({ type: "string", isPrimary: true })
+	@property({ type: "string", isPrimary: true, maxLength: 255 })
 	public id!: string;
 
 	/**
@@ -18,4 +18,16 @@ export class VaultSecret {
 	 */
 	@property({ type: "object" })
 	public data!: unknown;
+
+	/**
+	 * The date the secret was created, in ISO 8601 format.
+	 */
+	@property({ type: "string", format: "date-time", optional: true })
+	public dateCreated?: string;
+
+	/**
+	 * The date the secret was last modified, in ISO 8601 format.
+	 */
+	@property({ type: "string", format: "date-time", optional: true })
+	public dateModified?: string;
 }

@@ -1,13 +1,13 @@
-// Copyright 2024 IOTA Stiftung.
+// Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import { entity, property } from "@twin.org/entity";
 import type { VaultKeyType } from "@twin.org/vault-models";
 
 /**
- * Class defining a vault key.
+ * Class defining a vault key, version 0.
  */
-@entity({ version: 1 })
-export class VaultKey {
+@entity({ version: 0 })
+export class VaultKeyV0 {
 	/**
 	 * The id.
 	 */
@@ -31,16 +31,4 @@ export class VaultKey {
 	 */
 	@property({ type: "string", optional: true })
 	public publicKey?: string;
-
-	/**
-	 * The date the key was created, in ISO 8601 format.
-	 */
-	@property({ type: "string", format: "date-time", optional: true })
-	public dateCreated?: string;
-
-	/**
-	 * The date the key was last modified, in ISO 8601 format.
-	 */
-	@property({ type: "string", format: "date-time", optional: true })
-	public dateModified?: string;
 }

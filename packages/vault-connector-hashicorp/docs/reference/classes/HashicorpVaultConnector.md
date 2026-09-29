@@ -145,6 +145,32 @@ A promise that resolves when the secret has been stored.
 
 ***
 
+### stop() {#stop}
+
+> **stop**(`nodeLoggingComponentType?`): `Promise`\<`void`\>
+
+Stop the component and release the key metadata cache.
+
+#### Parameters
+
+##### nodeLoggingComponentType?
+
+`string`
+
+The node logging component type.
+
+#### Returns
+
+`Promise`\<`void`\>
+
+A promise that resolves when the component has stopped.
+
+#### Implementation of
+
+`IVaultConnector.stop`
+
+***
+
 ### secretExists() {#secretexists}
 
 > **secretExists**(`name`): `Promise`\<`boolean`\>
@@ -537,7 +563,7 @@ True if the signature is valid.
 
 > **encrypt**(`name`, `encryptionType`, `data`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Encrypt data.
+Encrypt data locally under a data key wrapped by the transit key.
 
 #### Parameters
 
@@ -575,7 +601,7 @@ The encrypted data.
 
 > **decrypt**(`name`, `encryptionType`, `encryptedData`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Decrypt data.
+Decrypt data, either an envelope or data encrypted directly by the transit key.
 
 #### Parameters
 
