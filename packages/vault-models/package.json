@@ -4,7 +4,7 @@
 	"description": "Shared models and factory utilities for consistent vault connector integration",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/iotaledger/twin-vault.git",
+		"url": "git+https://github.com/3sixtyglobal/twin-vault.git",
 		"directory": "packages/vault-models"
 	},
 	"author": "martyn.janes@iota.org",
@@ -78,7 +78,7 @@
 		"schemas"
 	],
 	"bugs": {
-		"url": "git+https://github.com/iotaledger/twin-vault/issues"
+		"url": "git+https://github.com/3sixtyglobal/twin-vault/issues"
 	},
 	"homepage": "https://twindev.org"
 }
