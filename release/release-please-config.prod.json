@@ -8,6 +8,7 @@
 	"release-type": "node",
 	"initial-version": "0.0.1",
 	"versioning": "default",
+	"last-release-sha": "1d70cd6bccbb2c9b8a4b71f04625e71429ba12e2",
 	"packages": {
 		"packages/vault-models": {
 			"package-name": "vault-models",

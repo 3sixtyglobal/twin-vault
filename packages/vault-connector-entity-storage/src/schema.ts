@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { EntitySchemaFactory, EntitySchemaHelper } from "@twin.org/entity";
-import { nameof } from "@twin.org/nameof";
+import { EntitySchemaFactory, EntitySchemaHelper } from "@3sixty/entity";
+import { nameof } from "@3sixty/nameof";
 import { VaultKey } from "./entities/vaultKey.js";
 import { VaultKeyV0 } from "./entities/vaultKeyV0.js";
 import { VaultSecret } from "./entities/vaultSecret.js";

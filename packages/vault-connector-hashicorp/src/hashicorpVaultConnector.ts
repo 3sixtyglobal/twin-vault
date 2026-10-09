@@ -5,7 +5,7 @@ import {
 	HealthStatus,
 	type IHealth,
 	type IHealthProviderComponent
-} from "@twin.org/api-models";
+} from "@3sixty/api-models";
 import {
 	AlreadyExistsError,
 	BaseError,
@@ -18,12 +18,12 @@ import {
 	NotFoundError,
 	RandomHelper,
 	StringHelper
-} from "@twin.org/core";
-import { ChaCha20Poly1305, Ed25519 } from "@twin.org/crypto";
-import type { ILoggingComponent } from "@twin.org/logging-models";
-import { nameof } from "@twin.org/nameof";
-import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
-import { FetchHelper, HttpMethod, type IHttpHeaders } from "@twin.org/web";
+} from "@3sixty/core";
+import { ChaCha20Poly1305, Ed25519 } from "@3sixty/crypto";
+import type { ILoggingComponent } from "@3sixty/logging-models";
+import { nameof } from "@3sixty/nameof";
+import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@3sixty/vault-models";
+import { FetchHelper, HttpMethod, type IHttpHeaders } from "@3sixty/web";
 import type { IBackupKeyResponse } from "./models/IBackupKeyResponse.js";
 import type { ICreateKeyRequest } from "./models/ICreateKeyRequest.js";
 import type { IDataKeyEnvelope } from "./models/IDataKeyEnvelope.js";

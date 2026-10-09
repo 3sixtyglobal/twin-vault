@@ -1,4 +1,4 @@
-# @twin.org/vault-connector-entity-storage
+# @3sixty/vault-connector-entity-storage
 
 ## Classes
 

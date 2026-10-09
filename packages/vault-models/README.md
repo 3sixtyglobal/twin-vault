@@ -1,11 +1,11 @@
-# TWIN Vault Models
+# 3Sixty Vault Models
 
 This package defines the shared contracts, enums, and factory helpers used by vault connectors, so applications can integrate key and secret operations through a consistent model.
 
 ## Installation
 
 ```shell
-npm install @twin.org/vault-models
+npm install @3sixty/vault-models
 ```
 
 ## Examples

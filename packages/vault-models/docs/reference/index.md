@@ -1,4 +1,4 @@
-# @twin.org/vault-models
+# @3sixty/vault-models
 
 ## Classes
 

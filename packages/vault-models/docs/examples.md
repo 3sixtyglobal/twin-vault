@@ -5,14 +5,14 @@ These examples show how to register vault connectors, use helper utilities for J
 ## VaultConnectorHelper
 
 ```typescript
-import { Jwt, type IJwtHeader, type IJwtPayload } from '@twin.org/web';
+import { Jwt, type IJwtHeader, type IJwtPayload } from '@3sixty/web';
 import {
   VaultConnectorFactory,
   VaultConnectorHelper,
   VaultEncryptionType,
   VaultKeyType,
   type IVaultConnector
-} from '@twin.org/vault-models';
+} from '@3sixty/vault-models';
 
 class InMemoryVaultConnector implements IVaultConnector {
   public className(): string {
@@ -126,7 +126,7 @@ console.log(verified.payload.iss); // example-service
 ## Types And Constants
 
 ```typescript
-import { VaultEncryptionType, VaultKeyType } from '@twin.org/vault-models';
+import { VaultEncryptionType, VaultKeyType } from '@3sixty/vault-models';
 
 const keyTypes: VaultKeyType[] = [
   VaultKeyType.Ed25519,

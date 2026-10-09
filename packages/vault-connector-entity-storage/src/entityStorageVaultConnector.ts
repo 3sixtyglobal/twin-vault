@@ -8,14 +8,14 @@ import {
 	Is,
 	NotFoundError,
 	RandomHelper
-} from "@twin.org/core";
-import { Bip39, ChaCha20Poly1305, Ed25519 } from "@twin.org/crypto";
+} from "@3sixty/core";
+import { Bip39, ChaCha20Poly1305, Ed25519 } from "@3sixty/crypto";
 import {
 	EntityStorageConnectorFactory,
 	type IEntityStorageConnector
-} from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
-import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
+} from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
+import { type IVaultConnector, VaultEncryptionType, VaultKeyType } from "@3sixty/vault-models";
 import type { VaultKey } from "./entities/vaultKey.js";
 import type { VaultSecret } from "./entities/vaultSecret.js";
 import type { IEntityStorageVaultConnectorConstructorOptions } from "./models/IEntityStorageVaultConnectorConstructorOptions.js";

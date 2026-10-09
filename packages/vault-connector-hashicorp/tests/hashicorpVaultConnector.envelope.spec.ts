@@ -1,10 +1,10 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 // Tests for the HashicorpVaultConnector data key envelope.
-import { BaseError, Converter, RandomHelper } from "@twin.org/core";
-import { ChaCha20Poly1305 } from "@twin.org/crypto";
-import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
-import { FetchHelper, HttpMethod } from "@twin.org/web";
+import { BaseError, Converter, RandomHelper } from "@3sixty/core";
+import { ChaCha20Poly1305 } from "@3sixty/crypto";
+import { VaultEncryptionType, VaultKeyType } from "@3sixty/vault-models";
+import { FetchHelper, HttpMethod } from "@3sixty/web";
 import { cleanupKeys, TEST_VAULT_CONFIG } from "./setupTestEnv.js";
 import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
 

@@ -1,11 +1,11 @@
-# TWIN Vault Connector Entity Storage
+# 3Sixty Vault Connector Entity Storage
 
 This package implements a vault connector that stores keys and secrets through an entity storage backend, enabling persisted vault workflows for services that rely on database-centric infrastructure.
 
 ## Installation
 
 ```shell
-npm install @twin.org/vault-connector-entity-storage
+npm install @3sixty/vault-connector-entity-storage
 ```
 
 ## Examples

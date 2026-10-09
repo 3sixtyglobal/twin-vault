@@ -5,8 +5,8 @@ These examples show how to connect to a Vault instance, inspect connector health
 ## HashicorpVaultConnector
 
 ```typescript
-import { HealthStatus } from '@twin.org/core';
-import { HashicorpVaultConnector } from '@twin.org/vault-connector-hashicorp';
+import { HealthStatus } from '@3sixty/core';
+import { HashicorpVaultConnector } from '@3sixty/vault-connector-hashicorp';
 
 const connector = new HashicorpVaultConnector({
   config: {
@@ -28,7 +28,7 @@ console.log(connector.className()); // HashicorpVaultConnector
 ```
 
 ```typescript
-import { HashicorpVaultConnector } from '@twin.org/vault-connector-hashicorp';
+import { HashicorpVaultConnector } from '@3sixty/vault-connector-hashicorp';
 
 interface IApiSecret {
   clientId: string;
@@ -54,9 +54,9 @@ await connector.removeSecret('payments');
 ```
 
 ```typescript
-import { Converter } from '@twin.org/core';
-import { HashicorpVaultConnector } from '@twin.org/vault-connector-hashicorp';
-import { VaultKeyType } from '@twin.org/vault-models';
+import { Converter } from '@3sixty/core';
+import { HashicorpVaultConnector } from '@3sixty/vault-connector-hashicorp';
+import { VaultKeyType } from '@3sixty/vault-models';
 
 const connector = new HashicorpVaultConnector({
   config: { endpoint: 'http://127.0.0.1:8200', token: 'root-token' }
@@ -82,8 +82,8 @@ console.log(keyType === VaultKeyType.Ed25519); // true
 ```
 
 ```typescript
-import { HashicorpVaultConnector } from '@twin.org/vault-connector-hashicorp';
-import { VaultKeyType } from '@twin.org/vault-models';
+import { HashicorpVaultConnector } from '@3sixty/vault-connector-hashicorp';
+import { VaultKeyType } from '@3sixty/vault-models';
 
 const connector = new HashicorpVaultConnector({
   config: { endpoint: 'http://127.0.0.1:8200', token: 'root-token' }
@@ -106,9 +106,9 @@ await connector.removeKey('current-key-name');
 Payloads are encrypted locally under a per-call data key that is wrapped by the transit key, so only the data key travels through Vault and the payload size is not bounded by the Vault request limits.
 
 ```typescript
-import { Converter } from '@twin.org/core';
-import { HashicorpVaultConnector } from '@twin.org/vault-connector-hashicorp';
-import { VaultEncryptionType, VaultKeyType } from '@twin.org/vault-models';
+import { Converter } from '@3sixty/core';
+import { HashicorpVaultConnector } from '@3sixty/vault-connector-hashicorp';
+import { VaultEncryptionType, VaultKeyType } from '@3sixty/vault-models';
 
 const connector = new HashicorpVaultConnector({
   config: { endpoint: 'http://127.0.0.1:8200', token: 'root-token' }
@@ -138,8 +138,8 @@ console.log(Converter.bytesToUtf8(decrypted)); // signed payload
 ```
 
 ```typescript
-import { HashicorpVaultConnector } from '@twin.org/vault-connector-hashicorp';
-import { VaultKeyType } from '@twin.org/vault-models';
+import { HashicorpVaultConnector } from '@3sixty/vault-connector-hashicorp';
+import { VaultKeyType } from '@3sixty/vault-models';
 
 const connector = new HashicorpVaultConnector({
   config: { endpoint: 'http://127.0.0.1:8200', token: 'root-token' }

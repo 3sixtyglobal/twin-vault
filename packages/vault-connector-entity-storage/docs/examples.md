@@ -5,9 +5,9 @@ These examples show common vault operations backed by entity storage, including 
 ## EntityStorageVaultConnector
 
 ```typescript
-import { Converter } from '@twin.org/core';
-import { EntityStorageVaultConnector } from '@twin.org/vault-connector-entity-storage';
-import { VaultEncryptionType, VaultKeyType } from '@twin.org/vault-models';
+import { Converter } from '@3sixty/core';
+import { EntityStorageVaultConnector } from '@3sixty/vault-connector-entity-storage';
+import { VaultEncryptionType, VaultKeyType } from '@3sixty/vault-models';
 
 const connector = new EntityStorageVaultConnector({
   config: { prefix: 'app' }
@@ -30,9 +30,9 @@ console.log(keyType === VaultKeyType.ChaCha20Poly1305); // true
 ```
 
 ```typescript
-import { Converter } from '@twin.org/core';
-import { EntityStorageVaultConnector } from '@twin.org/vault-connector-entity-storage';
-import { VaultKeyType } from '@twin.org/vault-models';
+import { Converter } from '@3sixty/core';
+import { EntityStorageVaultConnector } from '@3sixty/vault-connector-entity-storage';
+import { VaultKeyType } from '@3sixty/vault-models';
 
 const connector = new EntityStorageVaultConnector({
   config: { prefix: 'tenant-a' }
@@ -51,9 +51,9 @@ await connector.removeKey('current-signing');
 ```
 
 ```typescript
-import { Converter } from '@twin.org/core';
-import { EntityStorageVaultConnector } from '@twin.org/vault-connector-entity-storage';
-import { VaultEncryptionType, VaultKeyType } from '@twin.org/vault-models';
+import { Converter } from '@3sixty/core';
+import { EntityStorageVaultConnector } from '@3sixty/vault-connector-entity-storage';
+import { VaultEncryptionType, VaultKeyType } from '@3sixty/vault-models';
 
 const connector = new EntityStorageVaultConnector();
 
@@ -75,7 +75,7 @@ console.log(Converter.bytesToUtf8(decrypted)); // sensitive-value
 ```
 
 ```typescript
-import { EntityStorageVaultConnector } from '@twin.org/vault-connector-entity-storage';
+import { EntityStorageVaultConnector } from '@3sixty/vault-connector-entity-storage';
 
 interface IUserSecret {
   apiKey: string;
@@ -96,7 +96,7 @@ await connector.removeSecret('service-config');
 ```
 
 ```typescript
-import { EntityStorageVaultConnector } from '@twin.org/vault-connector-entity-storage';
+import { EntityStorageVaultConnector } from '@3sixty/vault-connector-entity-storage';
 
 const connector = new EntityStorageVaultConnector();
 console.log(connector.className()); // EntityStorageVaultConnector
@@ -105,8 +105,8 @@ console.log(connector.className()); // EntityStorageVaultConnector
 ## VaultKey
 
 ```typescript
-import type { VaultKey } from '@twin.org/vault-connector-entity-storage';
-import { VaultKeyType } from '@twin.org/vault-models';
+import type { VaultKey } from '@3sixty/vault-connector-entity-storage';
+import { VaultKeyType } from '@3sixty/vault-models';
 
 const vaultKey: VaultKey = {
   id: 'app-signing',
@@ -121,7 +121,7 @@ console.log(vaultKey.id); // app-signing
 ## VaultSecret
 
 ```typescript
-import type { VaultSecret } from '@twin.org/vault-connector-entity-storage';
+import type { VaultSecret } from '@3sixty/vault-connector-entity-storage';
 
 const vaultSecret: VaultSecret = {
   id: 'app-db-credentials',
@@ -137,7 +137,7 @@ console.log(vaultSecret.id); // app-db-credentials
 ## Functions
 
 ```typescript
-import { initSchema } from '@twin.org/vault-connector-entity-storage';
+import { initSchema } from '@3sixty/vault-connector-entity-storage';
 
 initSchema();
 ```

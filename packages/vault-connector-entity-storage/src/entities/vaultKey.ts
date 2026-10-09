@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { entity, property } from "@twin.org/entity";
-import type { VaultKeyType } from "@twin.org/vault-models";
+import { entity, property } from "@3sixty/entity";
+import type { VaultKeyType } from "@3sixty/vault-models";
 
 /**
  * Class defining a vault key.

@@ -1,12 +1,12 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 // Tests for the EntityStorageVaultConnector created and modified timestamps.
-import { Converter, RandomHelper } from "@twin.org/core";
-import { EntitySchemaFactory, EntitySchemaHelper } from "@twin.org/entity";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
-import { VaultKeyType } from "@twin.org/vault-models";
+import { Converter, RandomHelper } from "@3sixty/core";
+import { EntitySchemaFactory, EntitySchemaHelper } from "@3sixty/entity";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
+import { VaultKeyType } from "@3sixty/vault-models";
 import type { VaultKey } from "../src/entities/vaultKey.js";
 import type { VaultKeyV0 } from "../src/entities/vaultKeyV0.js";
 import type { VaultSecret } from "../src/entities/vaultSecret.js";

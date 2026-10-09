@@ -1,4 +1,4 @@
-# TWIN Vault
+# 3Sixty Vault
 
 This repository provides a focused set of vault components that help teams implement key management, encryption, signing, and secret handling with a consistent integration approach across services. The packages are designed to reduce repeated implementation work by combining shared contracts with connector specific behaviour in a way that remains predictable for both local development and production operations.
 

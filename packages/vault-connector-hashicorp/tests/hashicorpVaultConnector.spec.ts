@@ -1,8 +1,8 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { AlreadyExistsError, Converter, RandomHelper, StringHelper } from "@twin.org/core";
-import { Ed25519 } from "@twin.org/crypto";
-import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
+import { AlreadyExistsError, Converter, RandomHelper, StringHelper } from "@3sixty/core";
+import { Ed25519 } from "@3sixty/crypto";
+import { VaultEncryptionType, VaultKeyType } from "@3sixty/vault-models";
 import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv.js";
 import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
 

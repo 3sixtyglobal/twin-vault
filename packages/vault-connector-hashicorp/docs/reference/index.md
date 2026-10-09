@@ -1,4 +1,4 @@
-# @twin.org/vault-connector-hashicorp
+# @3sixty/vault-connector-hashicorp
 
 ## Classes
 

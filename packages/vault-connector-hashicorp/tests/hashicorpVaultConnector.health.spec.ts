@@ -3,10 +3,10 @@
 // Tests for HashicorpVaultConnector-specific functionality not present in the shared
 // IVaultConnector interface: health checks, exportKey, backupKey, restoreKey,
 // updateKeyConfig, getKeyDeleteConfiguration, getSecretVersions.
-import { HealthStatus } from "@twin.org/api-models";
-import { Converter, RandomHelper } from "@twin.org/core";
-import { Ed25519 } from "@twin.org/crypto";
-import { VaultEncryptionType, VaultKeyType } from "@twin.org/vault-models";
+import { HealthStatus } from "@3sixty/api-models";
+import { Converter, RandomHelper } from "@3sixty/core";
+import { Ed25519 } from "@3sixty/crypto";
+import { VaultEncryptionType, VaultKeyType } from "@3sixty/vault-models";
 import { cleanupKeys, cleanupSecrets, TEST_VAULT_CONFIG } from "./setupTestEnv.js";
 import { HashicorpVaultConnector } from "../src/hashicorpVaultConnector.js";
 

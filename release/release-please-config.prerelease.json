@@ -10,6 +10,7 @@
 	"versioning": "prerelease",
 	"prerelease": true,
 	"prerelease-type": "next",
+	"last-release-sha": "f0413fe20004f2c5b3518a6ed9c2604f0bcc884c",
 	"packages": {
 		"packages/vault-models": {
 			"package-name": "vault-models",
